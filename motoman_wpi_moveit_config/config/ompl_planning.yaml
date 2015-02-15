@@ -51,21 +51,6 @@ arm_right:
     - PRMstarkConfigDefault
   projection_evaluator: joints(arm_right_joint_1_s,arm_right_joint_2_l)
   longest_valid_segment_fraction: 0.05
-torso:
-  planner_configs:
-    - SBLkConfigDefault
-    - ESTkConfigDefault
-    - LBKPIECEkConfigDefault
-    - BKPIECEkConfigDefault
-    - KPIECEkConfigDefault
-    - RRTkConfigDefault
-    - RRTConnectkConfigDefault
-    - RRTstarkConfigDefault
-    - TRRTkConfigDefault
-    - PRMkConfigDefault
-    - PRMstarkConfigDefault
-  projection_evaluator: joints(torso_joint_b1,torso_joint_b2)
-  longest_valid_segment_fraction: 0.05
 arms:
   planner_configs:
     - SBLkConfigDefault
@@ -80,19 +65,4 @@ arms:
     - PRMkConfigDefault
     - PRMstarkConfigDefault
   projection_evaluator: joints(arm_left_joint_1_s,arm_left_joint_2_l)
-  longest_valid_segment_fraction: 0.05
-sda10f:
-  planner_configs:
-    - SBLkConfigDefault
-    - ESTkConfigDefault
-    - LBKPIECEkConfigDefault
-    - BKPIECEkConfigDefault
-    - KPIECEkConfigDefault
-    - RRTkConfigDefault
-    - RRTConnectkConfigDefault
-    - RRTstarkConfigDefault
-    - TRRTkConfigDefault
-    - PRMkConfigDefault
-    - PRMstarkConfigDefault
-  projection_evaluator: joints(torso_joint_b1,arm_left_joint_1_s)
   longest_valid_segment_fraction: 0.05
