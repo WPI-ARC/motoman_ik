@@ -1,0 +1,7 @@
+<library path="lib/libgeneralik_kinematics_plugin">
+  <class name="generalik_kinematics_plugin/GeneralIKKinematicsPlugin" type="generalik_kinematics_plugin::GeneralIKKinematicsPlugin" base_class_type="kinematics::KinematicsBase">
+    <description>
+      A implementation of kinematics as a plugin based on GeneralIK for the motoman SDA10F
+    </description>
+  </class>
+</library>
