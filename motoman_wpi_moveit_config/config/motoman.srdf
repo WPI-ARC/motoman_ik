@@ -10,7 +10,8 @@
     <!--CHAINS: When a chain is specified, all the links along the chain (including endpoints) are included in the group. Additionally, all the joints that are parents to included links are also included. This means that joints along the chain and the parent joint of the base link are included in the group-->
     <!--SUBGROUPS: Groups can also be formed by referencing to already defined group names-->
     <group name="arm_left">
-        <chain base_link="torso_link_b1" tip_link="arm_left_link_7_t" />
+        <chain base_link="base_link" tip_link="arm_left_link_7_t" />
+        <!-- <chain base_link="torso_link_b1" tip_link="arm_left_link_7_t" /> -->
         <!-- <joint name="arm_left_joint_1_s" /> -->
         <!-- <joint name="arm_left_joint_2_l" /> -->
         <!-- <joint name="arm_left_joint_3_e" /> -->
@@ -20,7 +21,8 @@
         <!-- <joint name="arm_left_joint_7_t" /> -->
     </group>
     <group name="arm_right">
-        <chain base_link="torso_link_b1" tip_link="arm_right_link_7_t" />
+        <chain base_link="base_link" tip_link="arm_right_link_7_t" />
+        <!-- <chain base_link="torso_link_b1" tip_link="arm_right_link_7_t" /> -->
         <!-- <joint name="arm_right_joint_1_s" /> -->
         <!-- <joint name="arm_right_joint_2_l" /> -->
         <!-- <joint name="arm_right_joint_3_e" /> -->
@@ -29,10 +31,14 @@
         <!-- <joint name="arm_right_joint_6_b" /> -->
         <!-- <joint name="arm_right_joint_7_t" /> -->
     </group>
+    <!-- <group name="torso"> -->
+    <!--     <chain base_link="base_link" tip_link="torso_link_b1" /> -->
+        <!-- <joint name="torso_joint_b1" /> -->
+    <!-- </group> -->
     <group name="arms">
         <group name="arm_left" />
         <group name="arm_right" />
-        <!-- <joint name="torso_joint_b1" /> -->
+        <!-- <group name="torso" /> -->
     </group>
     <!-- <group name="arms"> -->
     <!--     <joint name="torso_joint_b1" /> -->

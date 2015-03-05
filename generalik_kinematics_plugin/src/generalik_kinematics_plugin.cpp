@@ -2,6 +2,7 @@
 #include <moveit/generalik_kinematics_plugin/generalik_kinematics_plugin.h>
 #include <class_loader/class_loader.h>
 #include <tf/transform_datatypes.h>
+#include <eigen_conversions/eigen_msg.h>
 
 // URDF, SRDF
 #include <urdf_model/model.h>
@@ -102,6 +103,8 @@ bool GeneralIKKinematicsPlugin::initialize(const std::string &robot_description,
     if(joint_model_group->getJointModels()[i]->getType() == moveit::core::JointModel::REVOLUTE || joint_model_group->getJointModels()[i]->getType() == moveit::core::JointModel::PRISMATIC)
     {
       ik_chain_info_.joint_names.push_back(joint_model_group->getJointModelNames()[i]);
+      ROS_DEBUG_STREAM_NAMED("generalik","Joint[" << i <<"]: "
+                             << joint_model_group->getJointModelNames()[i]);
       const std::vector<moveit_msgs::JointLimits> &jvec = joint_model_group->getJointModels()[i]->getVariableBoundsMsg();
       ik_chain_info_.limits.insert(ik_chain_info_.limits.end(), jvec.begin(), jvec.end());
     }
@@ -402,6 +405,8 @@ bool GeneralIKKinematicsPlugin::searchPositionIK(const std::vector<geometry_msgs
     if(error_code.val == error_code.SUCCESS)
     {
       ROS_DEBUG_STREAM_NAMED("generalik","Solved after " << counter << " iterations");
+      for(unsigned int j=0; j < dimension_; j++)
+        ROS_DEBUG_NAMED("generalik","%d %f", j, solution[j]);
       return true;
     }
   }
@@ -416,53 +421,234 @@ bool GeneralIKKinematicsPlugin::solvePositionIK(const std::vector<double> &ik_se
 {
   // TODO: Pull out
   int nb_steps_ = 100;
+  double tolerance_ = 0.002;
+  bool check_joint_limits_ = false;
+
+  // ROS_DEBUG_NAMED("generalik","SolvePositionIK()");
   
   Eigen::VectorXd xdes(6);
   xdes(0) = ik_poses[0].position.x;
   xdes(1) = ik_poses[0].position.y;
   xdes(2) = ik_poses[0].position.z;
+  xdes(3) = ik_poses[1].position.x;
+  xdes(4) = ik_poses[1].position.y;
+  xdes(5) = ik_poses[1].position.z;
   tf::Quaternion q;
   tf::quaternionMsgToTF(ik_poses[0].orientation, q);
   tf::Matrix3x3 m(q);
   double roll, pitch, yaw;
   m.getRPY(roll, pitch, yaw);
   // TODO: Confirm
-  xdes(3) = yaw;
-  xdes(4) = pitch;
-  xdes(5) = roll;
+  // xdes(3) = yaw;
+  // xdes(4) = pitch;
+  // xdes(5) = roll;
+  // xdes(3) = quat_dest.w();
+  // xdes(4) = quat_dest.x();
+  // xdes(5) = quat_dest.y();
+  // xdes(6) = quat_dest.z();
+  // ROS_DEBUG_STREAM_NAMED("generalik","q_i: " << quat_dest.w() << " " << quat_dest.x() << " "
+  //                         << quat_dest.y() << " "<< quat_dest.z());
+
+  ROS_DEBUG_STREAM_NAMED("generalik","Target Pose: " << std::endl << xdes);
   
+  // Probably don't need
   // Move3D::confPtr_t q_proj = robot_->getCurrentPos();
   // robot_->setAndUpdate(*q_proj);
-  
-  // Move3D::confPtr_t q_cur = robot_->getCurrentPos();
+
+  // ROS_DEBUG_NAMED("generalik","Preparing for IK loop");    
+  Eigen::VectorXd qcur(ik_seed_state.size());
+  for(unsigned int i=0; i < dimension_; i++) {
+    qcur(i) = ik_seed_state[i];
+  }
   double dist=.0;
   bool succeed = false;
-  Eigen::VectorXd q_new;
-  
-  bool with_rotations = (xdes.size() == 6);
-  
+  Eigen::VectorXd qnew;
+  ROS_DEBUG_STREAM_NAMED("generalik","Initial Pose: " << std::endl << getPose(qcur));
+
+  // ROS_DEBUG_NAMED("generalik","Running IK loop");  
   for( int i=0; i<nb_steps_; i++) // IK LOOP
   {
-    // Eigen::VectorXd q = q_cur->getEigenVector( active_dofs_ );
-    // if( check_joint_limits_ )
-    //   q_new = q + single_step_joint_limits( xdes );
-    // else
-    //   q_new = q + single_step( xdes );
-    // q_cur->setFromEigenVector( q_new, active_dofs_ );
-    // robot_->setAndUpdate( *q_cur );
-    // dist = ( xdes - ( with_rotations ? eef_->getXYZPose() : Eigen::VectorXd( eef_->getVectorPos().head(xdes.size())))).norm();
-    // // cout << "diff = " << dist << endl;
-    // if( dist < 0.001 ){
-    //   // cout << "success (" << i << "), diff = " << dist << endl;
-    //   succeed = true;
-    //   break;
-    // }
+    if( check_joint_limits_ )
+      // TODO: implement
+      // q_new = q + single_step_joint_limits( xdes );
+      continue;
+    else
+      qnew = qcur + singleStep(qcur, xdes);
+    qcur = qnew;
+    // Eigen::Affine3d pose = getPose(qcur);
+    // Eigen::Quaterniond q(pose.rotation());
+    // dist = fabs(q.dot(quat_dest));
+    ROS_DEBUG_STREAM_NAMED("generalik","Pose: " << std::endl << getPose(qcur));
+    dist = (xdes-getPose(qcur)).norm();
+    ROS_DEBUG_STREAM_NAMED("generalik","diff = " << dist);
+    if( dist < tolerance_ ){
+      ROS_DEBUG_STREAM_NAMED("generalik","success (" << i << "), diff = " << dist);
+      succeed = true;
+      break;
+    }
   }
-  
-  // return succeed;
-  
-  getRandomConfiguration(solution);
+
+  for(unsigned int i=0; i < dimension_; i++) {
+    solution[i] = qcur(i);
+  }
   return true;
+  // return succeed;
+}
+
+Eigen::VectorXd GeneralIKKinematicsPlugin::singleStep(const Eigen::VectorXd& qcur,
+                                                      const Eigen::VectorXd& xdes) const
+{
+  // TODO: Pull out
+  double magnitude_ = 0.1;
+
+  // ROS_DEBUG_NAMED("generalik","Running single step");  
+  // Eigen::Affine3d xcur_aff = getPose(qcur);
+  // Eigen::VectorXd xcur(6);
+  // Eigen::Quaterniond q(xcur_aff.rotation());
+  // xcur << xcur_aff.translation(), q.coeffs();
+  Eigen::VectorXd xcur = getPose(qcur);
+  Eigen::VectorXd x_error = xdes - xcur;
+  Eigen::MatrixXd J = getJacobian(qcur);
+  Eigen::MatrixXd Jplus = pinv(J, 1e-3);
+  ROS_DEBUG_STREAM_NAMED("generalik","J^t: " << std::endl << Jplus);
+  Eigen::VectorXd dq = Jplus * magnitude_ * x_error;
+  ROS_DEBUG_STREAM_NAMED("generalik","dq: " << dq);
+  return dq;
+}
+
+Eigen::VectorXd GeneralIKKinematicsPlugin::getPose(const Eigen::VectorXd& qcur) const
+{
+  // ROS_DEBUG_NAMED("generalik","Getting Pose");  
+  // TODO: optimize by making global?
+  moveit::core::RobotStatePtr kinematic_state(new robot_state::RobotState(robot_model_));
+  std::vector<double> qvec(qcur.data(), qcur.data() + qcur.size());
+  kinematic_state->setVariablePositions(getJointNames(), qvec);
+  const Eigen::Affine3d &left_state = kinematic_state->getGlobalLinkTransform(getTipFrames()[0]);
+  const Eigen::Affine3d &right_state = kinematic_state->getGlobalLinkTransform(getTipFrames()[1]);
+  
+  Eigen::VectorXd pose(6);
+  pose(0) = left_state.translation()(0);
+  pose(1) = left_state.translation()[1];
+  pose(2) = left_state.translation()(2);
+  pose(3) = right_state.translation()(0);
+  pose(4) = right_state.translation()[1];
+  pose(5) = right_state.translation()(2);
+  // TODO: Confirm
+  tf::Matrix3x3 m(left_state.rotation()(0,0), left_state.rotation()(0,1), left_state.rotation()(0,2),
+                  left_state.rotation()(1,0), left_state.rotation()(1,1), left_state.rotation()(1,2),
+                  left_state.rotation()(2,0), left_state.rotation()(2,1), left_state.rotation()(2,2));
+  double roll, pitch, yaw;
+  m.getRPY(roll, pitch, yaw);
+  // TODO: Confirm
+  // pose(3) = yaw;
+  // pose(4) = pitch;
+  // pose(5) = roll;
+  // Eigen::Quaterniond q(left_state.rotation());
+  // pose(3) = q.w();
+  // pose(4) = q.x();
+  // pose(5) = q.y();
+  // pose(6) = q.z();
+  // ROS_DEBUG_STREAM_NAMED("generalik","q: " << q.coeffs());
+  return pose;
+}
+
+Eigen::MatrixXd GeneralIKKinematicsPlugin::getJacobian(const Eigen::VectorXd& qcur) const
+{
+  // ROS_DEBUG_NAMED("generalik","Getting Jacobian");  
+  // TODO: optimize by making global?
+  moveit::core::RobotStatePtr kinematic_state(new robot_state::RobotState(robot_model_));
+  std::vector<double> qvec(qcur.data(), qcur.data() + qcur.size());
+  kinematic_state->setVariablePositions(getJointNames(), qvec);
+  Eigen::Vector3d reference_point_position(0.0,0.0,0.0);
+  Eigen::MatrixXd J, J_left, J_right;
+  // Eigen::MatrixXd J, J_left, J_right, J_torso_left, J_torso_right;
+  bool success = kinematic_state->getJacobian(robot_model_->getJointModelGroup("arm_left"), // TODO: Abstract out group
+                                              kinematic_state->getLinkModel(getTipFrames()[0]),
+                                              reference_point_position,
+                                              J_left);
+  if (!success) {
+    ROS_ERROR_STREAM_NAMED("generalik","Error calculating J_left: " << std::endl << J_left);
+  }
+  success = kinematic_state->getJacobian(robot_model_->getJointModelGroup("arm_right"), // TODO: Abstract out group
+                                         kinematic_state->getLinkModel(getTipFrames()[1]),
+                                         reference_point_position,
+                                         J_right);
+  if (!success) {
+    ROS_ERROR_STREAM_NAMED("generalik","Error calculating J_right: " << std::endl << J_right);
+  }
+  // success = kinematic_state->getJacobian(robot_model_->getJointModelGroup("torso"), // TODO: Abstract out group
+  //                                        kinematic_state->getLinkModel(getTipFrames()[0]),
+  //                                        reference_point_position,
+  //                                        J_torso_left);
+  // if (!success) {
+  //   ROS_ERROR_STREAM_NAMED("generalik","Error calculating J_torso_left: " << std::endl << J_torso_left);
+  // }
+  // success = kinematic_state->getJacobian(robot_model_->getJointModelGroup("torso"), // TODO: Abstract out group
+  //                                        kinematic_state->getLinkModel(getTipFrames()[1]),
+  //                                        reference_point_position,
+  //                                        J_torso_right);
+  // if (!success) {
+  //   ROS_ERROR_STREAM_NAMED("generalik","Error calculating J_torso_right: " << std::endl << J_torso_right);
+  // }
+
+  J.resize(6, 15);
+  J << J_left.block<3,1>(0, 0), J_left.block<3,7>(0, 1), Eigen::MatrixXd::Zero(3, 7),
+      J_right.block<3,1>(0, 0), Eigen::MatrixXd::Zero(3, 7), J_right.block<3,7>(0, 1);
+  ROS_DEBUG_STREAM_NAMED("generalik","J: " << std::endl << J);
+  return J;
+}
+
+// Derived from code by Yohann Solaro ( http://listengine.tuxfamily.org/lists.tuxfamily.org/eigen/2010/01/msg00187.html )
+// see : http://en.wikipedia.org/wiki/Moore-Penrose_pseudoinverse#The_general_case_and_the_SVD_method
+Eigen::MatrixXd GeneralIKKinematicsPlugin::pinv( const Eigen::MatrixXd &b, double rcond ) const
+{
+  // TODO: Figure out why it wants fewer rows than columns
+  // if ( a.rows()<a.cols() )
+  // return false;
+  bool flip = false;
+  Eigen::MatrixXd a;
+  // if( a.rows() < a.cols() )
+  // {
+  //   a = b.transpose();
+  //   flip = true;
+  // }
+  // else
+    a = b;
+
+  // SVD
+  Eigen::JacobiSVD<Eigen::MatrixXd> svdA;
+  svdA.compute( a, Eigen::ComputeFullU | Eigen::ComputeThinV );
+
+  Eigen::JacobiSVD<Eigen::MatrixXd>::SingularValuesType vSingular = svdA.singularValues();
+
+  // Build a diagonal matrix with the Inverted Singular values
+  // The pseudo inverted singular matrix is easy to compute :
+  // is formed by replacing every nonzero entry by its reciprocal (inversing).
+  Eigen::VectorXd vPseudoInvertedSingular( svdA.matrixV().cols() );
+
+  for (int iRow=0; iRow<vSingular.rows(); iRow++)
+  {
+    if ( fabs(vSingular(iRow)) <= rcond ) // Todo : Put epsilon in parameter
+    {
+      vPseudoInvertedSingular(iRow)=0.;
+    }
+    else
+      vPseudoInvertedSingular(iRow)=1./vSingular(iRow);
+  }
+
+  // A little optimization here
+  Eigen::MatrixXd mAdjointU = svdA.matrixU().adjoint().block( 0, 0, vSingular.rows(), svdA.matrixU().adjoint().cols() );
+
+  // Pseudo-Inversion : V * S * U'
+  Eigen::MatrixXd a_pinv = (svdA.matrixV() * vPseudoInvertedSingular.asDiagonal()) * mAdjointU;
+
+  if( flip )
+  {
+    a = a.transpose();
+    a_pinv = a_pinv.transpose();
+  }
+
+  return a_pinv;
 }
   
 bool GeneralIKKinematicsPlugin::getPositionFK(const std::vector<std::string> &link_names,

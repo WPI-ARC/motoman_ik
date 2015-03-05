@@ -196,6 +196,14 @@ namespace generalik_kinematics_plugin
                          std::vector<double> &solution) const;
                          // TODO: double timeout, (?)
 
+    Eigen::VectorXd singleStep(const Eigen::VectorXd& qcur, const Eigen::VectorXd& xdes) const;
+
+    Eigen::VectorXd getPose(const Eigen::VectorXd& qcur) const;
+    
+    Eigen::MatrixXd getJacobian(const Eigen::VectorXd& qcur) const;
+
+    Eigen::MatrixXd pinv( const Eigen::MatrixXd &b, double rcond ) const;
+
     int getJointIndex(const std::string &name) const;
 
     bool isRedundantJoint(unsigned int index) const;
