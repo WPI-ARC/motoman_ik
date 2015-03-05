@@ -20,8 +20,8 @@ namespace generalik_kinematics_plugin
 {
 
 GeneralIKKinematicsPlugin::GeneralIKKinematicsPlugin():active_(false) {
-  log4cxx::LoggerPtr my_logger =  log4cxx::Logger::getLogger(ROSCONSOLE_DEFAULT_NAME);
-  my_logger->setLevel(ros::console::g_level_lookup[ros::console::levels::Debug]);
+  // log4cxx::LoggerPtr my_logger =  log4cxx::Logger::getLogger(ROSCONSOLE_DEFAULT_NAME);
+  // my_logger->setLevel(ros::console::g_level_lookup[ros::console::levels::Debug]);
 }
 
 void GeneralIKKinematicsPlugin::getRandomConfiguration(std::vector<double>& jnt_array) const
@@ -124,14 +124,14 @@ bool GeneralIKKinematicsPlugin::initialize(const std::string &robot_description,
   }
   fk_chain_info_.link_names = joint_model_group->getLinkModelNames();
 
-  // joint_min_.resize(ik_chain_info_.limits.size());
-  // joint_max_.resize(ik_chain_info_.limits.size());
+  joint_min_.resize(ik_chain_info_.limits.size());
+  joint_max_.resize(ik_chain_info_.limits.size());
 
-  // for(unsigned int i=0; i < ik_chain_info_.limits.size(); i++)
-  // {
-  //   joint_min_(i) = ik_chain_info_.limits[i].min_position;
-  //   joint_max_(i) = ik_chain_info_.limits[i].max_position;
-  // }
+  for(unsigned int i=0; i < ik_chain_info_.limits.size(); i++)
+  {
+    joint_min_(i) = ik_chain_info_.limits[i].min_position;
+    joint_max_(i) = ik_chain_info_.limits[i].max_position;
+  }
 
   // Get Solver Parameters
   int max_solver_iterations;
@@ -311,7 +311,6 @@ bool GeneralIKKinematicsPlugin::searchPositionIK(const std::vector<geometry_msgs
                                            const moveit::core::RobotState* context_state) const
 {
   ROS_WARN_STREAM_NAMED("generalik","Searching for "<<ik_poses.size()<<" solutions.");
-  // geometry_msgs::Pose ik_pose = ik_poses[0];
   
   ros::WallTime n1 = ros::WallTime::now();
   if(!active_)
@@ -361,7 +360,7 @@ bool GeneralIKKinematicsPlugin::searchPositionIK(const std::vector<geometry_msgs
   unsigned int counter(0);
   while(1)
   {
-    ROS_DEBUG_NAMED("generalik","Iteration: %d, time: %f, Timeout: %f",counter,(ros::WallTime::now()-n1).toSec(), timeout);
+    ROS_WARN_NAMED("generalik","Iteration: %d, time: %f, Timeout: %f",counter,(ros::WallTime::now()-n1).toSec(), timeout);
     counter++;
     if(timedOut(n1,timeout))
     {
@@ -421,8 +420,9 @@ bool GeneralIKKinematicsPlugin::solvePositionIK(const std::vector<double> &ik_se
 {
   // TODO: Pull out
   int nb_steps_ = 100;
-  double tolerance_ = 0.002;
-  bool check_joint_limits_ = false;
+  // double tolerance_ = 0.002;
+  double tolerance_ = 1;
+  bool check_joint_limits_ = true;
 
   // ROS_DEBUG_NAMED("generalik","SolvePositionIK()");
   
@@ -445,8 +445,9 @@ bool GeneralIKKinematicsPlugin::solvePositionIK(const std::vector<double> &ik_se
   xdes(6) = ik_poses[1].position.x;
   xdes(7) = ik_poses[1].position.y;
   xdes(8) = ik_poses[1].position.z;
-  tf::quaternionMsgToTF(ik_poses[1].orientation, q);
-  tf::Matrix3x3 m2(q);
+  tf::Quaternion q2;
+  tf::quaternionMsgToTF(ik_poses[1].orientation, q2);
+  tf::Matrix3x3 m2(q2);
   m2.getRPY(roll, pitch, yaw);
   xdes(9) = roll;
   xdes(10) = pitch;
@@ -454,10 +455,6 @@ bool GeneralIKKinematicsPlugin::solvePositionIK(const std::vector<double> &ik_se
   
   ROS_DEBUG_STREAM_NAMED("generalik","Target Pose: " << std::endl << xdes);
   
-  // Probably don't need
-  // Move3D::confPtr_t q_proj = robot_->getCurrentPos();
-  // robot_->setAndUpdate(*q_proj);
-
   // ROS_DEBUG_NAMED("generalik","Preparing for IK loop");    
   Eigen::VectorXd qcur(ik_seed_state.size());
   for(unsigned int i=0; i < dimension_; i++) {
@@ -471,16 +468,14 @@ bool GeneralIKKinematicsPlugin::solvePositionIK(const std::vector<double> &ik_se
   // ROS_DEBUG_NAMED("generalik","Running IK loop");  
   for( int i=0; i<nb_steps_; i++) // IK LOOP
   {
-    if( check_joint_limits_ )
-      // TODO: implement
-      // q_new = q + single_step_joint_limits( xdes );
-      continue;
-    else
+    if( check_joint_limits_ ) {
+      ROS_DEBUG_STREAM_NAMED("generalik","Checking joint limits.");
+      qnew = qcur + singleStepJointLimits(qcur, xdes);
+    } else {
+      ROS_DEBUG_STREAM_NAMED("generalik","Not checking joint limits.");
       qnew = qcur + singleStep(qcur, xdes);
+    }
     qcur = qnew;
-    // Eigen::Affine3d pose = getPose(qcur);
-    // Eigen::Quaterniond q(pose.rotation());
-    // dist = fabs(q.dot(quat_dest));
     ROS_DEBUG_STREAM_NAMED("generalik","Pose: " << std::endl << getPose(qcur));
     dist = (xdes-getPose(qcur)).norm();
     ROS_DEBUG_STREAM_NAMED("generalik","diff = " << dist);
@@ -491,11 +486,13 @@ bool GeneralIKKinematicsPlugin::solvePositionIK(const std::vector<double> &ik_se
     }
   }
 
+  ROS_WARN_STREAM_NAMED("generalik","Distance: "<<dist);
+
   for(unsigned int i=0; i < dimension_; i++) {
     solution[i] = qcur(i);
   }
-  return true;
-  // return succeed;
+  // return true;
+  return succeed;
 }
 
 Eigen::VectorXd GeneralIKKinematicsPlugin::singleStep(const Eigen::VectorXd& qcur,
@@ -505,17 +502,74 @@ Eigen::VectorXd GeneralIKKinematicsPlugin::singleStep(const Eigen::VectorXd& qcu
   double magnitude_ = 0.1;
 
   // ROS_DEBUG_NAMED("generalik","Running single step");  
-  // Eigen::Affine3d xcur_aff = getPose(qcur);
-  // Eigen::VectorXd xcur(6);
-  // Eigen::Quaterniond q(xcur_aff.rotation());
-  // xcur << xcur_aff.translation(), q.coeffs();
   Eigen::VectorXd xcur = getPose(qcur);
   Eigen::VectorXd x_error = xdes - xcur;
   Eigen::MatrixXd J = getJacobian(qcur);
   Eigen::MatrixXd Jplus = pinv(J, 1e-3);
-  // ROS_DEBUG_STREAM_NAMED("generalik","J^t: " << std::endl << Jplus);
+  // ROS_DEBUG_STREAM_NAMED("generalik","J^-1: " << std::endl << Jplus);
   Eigen::VectorXd dq = Jplus * magnitude_ * x_error;
   // ROS_DEBUG_STREAM_NAMED("generalik","dq: " << dq);
+  return dq;
+}
+
+Eigen::VectorXd GeneralIKKinematicsPlugin::singleStepJointLimits(const Eigen::VectorXd& qcur_init,
+                                                                 const Eigen::VectorXd& xdes) const
+{
+  // TODO: Pull out
+  double magnitude_ = 0.1;
+
+  Eigen::VectorXd qcur = qcur_init;
+  Eigen::VectorXd xcur = getPose(qcur);
+  Eigen::VectorXd x_error = xdes - xcur;
+  Eigen::MatrixXd J = getJacobian(qcur);;
+
+  Eigen::VectorXd dq;
+  std::vector<int> badjointinds;
+  bool limit = false;
+
+  do
+  {
+    Eigen::VectorXd qcur_old = qcur;
+    // eliminate bad joint columns from the Jacobian
+    for(int j = 0; j < badjointinds.size(); j++)
+      for(int k = 0; k < xdes.size(); k++)
+        J( k, badjointinds[j] ) = 0;
+    
+    /*
+    // Damped Least-Squares (DLS)
+    // Jplus = Jt * [(Jt * J ) + lambda * diag(I)]^{-1}
+    Eigen::MatrixXd Reg(Eigen::MatrixXd::Zero(J.rows(), J.rows()));
+    Reg.diagonal() = 0.0001 * Eigen::VectorXd::Ones(Reg.diagonal().size());
+    Eigen::MatrixXd M = (J*J.transpose())+Reg;
+    Eigen::MatrixXd Jplus = J.transpose()*M.inverse();
+    */
+    
+    Eigen::MatrixXd Jplus = pinv(J, 1e-3);//.block(0, 0, qcur.size(), xdes.size());
+    // ROS_DEBUG_STREAM_NAMED("generalik","J^-1: " << std::endl << Jplus);
+    dq = Jplus * magnitude_ * x_error;
+    // ROS_DEBUG_STREAM_NAMED("generalik","dq: " << dq);
+    // add step
+    qcur = qcur_old + dq;
+    limit = false;
+    for(int j =0; j<qcur.size(); j++)
+    {
+      // if( active_joints_[j]->isJointDofCircular(0) )
+      //   continue;
+      if( qcur[j] < joint_min_[j] || qcur[j] > joint_max_[j] )
+      {
+        ROS_DEBUG_STREAM_NAMED("generalik","Joint limit hit: joint " << j);
+        badjointinds.push_back(j); // note this will never add the same joint twice, even if bClearBadJoints = false
+        limit = true;
+      }
+    }
+    
+    // move back to previous point if any joint limits
+    if(limit)
+      qcur = qcur_old;
+  } while(limit);
+
+  ROS_DEBUG_STREAM_NAMED("generalik","Final dq: " << dq);
+  
   return dq;
 }
 
