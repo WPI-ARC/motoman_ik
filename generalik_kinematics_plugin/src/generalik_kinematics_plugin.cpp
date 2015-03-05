@@ -426,29 +426,32 @@ bool GeneralIKKinematicsPlugin::solvePositionIK(const std::vector<double> &ik_se
 
   // ROS_DEBUG_NAMED("generalik","SolvePositionIK()");
   
-  Eigen::VectorXd xdes(6);
+  Eigen::VectorXd xdes(12);
+
+  // Left Arm
   xdes(0) = ik_poses[0].position.x;
   xdes(1) = ik_poses[0].position.y;
   xdes(2) = ik_poses[0].position.z;
-  xdes(3) = ik_poses[1].position.x;
-  xdes(4) = ik_poses[1].position.y;
-  xdes(5) = ik_poses[1].position.z;
   tf::Quaternion q;
   tf::quaternionMsgToTF(ik_poses[0].orientation, q);
   tf::Matrix3x3 m(q);
   double roll, pitch, yaw;
   m.getRPY(roll, pitch, yaw);
-  // TODO: Confirm
-  // xdes(3) = yaw;
-  // xdes(4) = pitch;
-  // xdes(5) = roll;
-  // xdes(3) = quat_dest.w();
-  // xdes(4) = quat_dest.x();
-  // xdes(5) = quat_dest.y();
-  // xdes(6) = quat_dest.z();
-  // ROS_DEBUG_STREAM_NAMED("generalik","q_i: " << quat_dest.w() << " " << quat_dest.x() << " "
-  //                         << quat_dest.y() << " "<< quat_dest.z());
+  xdes(3) = roll;
+  xdes(4) = pitch;
+  xdes(5) = yaw;
 
+  // Right Arm
+  xdes(6) = ik_poses[1].position.x;
+  xdes(7) = ik_poses[1].position.y;
+  xdes(8) = ik_poses[1].position.z;
+  tf::quaternionMsgToTF(ik_poses[1].orientation, q);
+  tf::Matrix3x3 m2(q);
+  m2.getRPY(roll, pitch, yaw);
+  xdes(9) = roll;
+  xdes(10) = pitch;
+  xdes(11) = yaw;
+  
   ROS_DEBUG_STREAM_NAMED("generalik","Target Pose: " << std::endl << xdes);
   
   // Probably don't need
@@ -510,9 +513,9 @@ Eigen::VectorXd GeneralIKKinematicsPlugin::singleStep(const Eigen::VectorXd& qcu
   Eigen::VectorXd x_error = xdes - xcur;
   Eigen::MatrixXd J = getJacobian(qcur);
   Eigen::MatrixXd Jplus = pinv(J, 1e-3);
-  ROS_DEBUG_STREAM_NAMED("generalik","J^t: " << std::endl << Jplus);
+  // ROS_DEBUG_STREAM_NAMED("generalik","J^t: " << std::endl << Jplus);
   Eigen::VectorXd dq = Jplus * magnitude_ * x_error;
-  ROS_DEBUG_STREAM_NAMED("generalik","dq: " << dq);
+  // ROS_DEBUG_STREAM_NAMED("generalik","dq: " << dq);
   return dq;
 }
 
@@ -526,29 +529,32 @@ Eigen::VectorXd GeneralIKKinematicsPlugin::getPose(const Eigen::VectorXd& qcur) 
   const Eigen::Affine3d &left_state = kinematic_state->getGlobalLinkTransform(getTipFrames()[0]);
   const Eigen::Affine3d &right_state = kinematic_state->getGlobalLinkTransform(getTipFrames()[1]);
   
-  Eigen::VectorXd pose(6);
+  Eigen::VectorXd pose(12);
+
+  // Left arm
   pose(0) = left_state.translation()(0);
   pose(1) = left_state.translation()[1];
   pose(2) = left_state.translation()(2);
-  pose(3) = right_state.translation()(0);
-  pose(4) = right_state.translation()[1];
-  pose(5) = right_state.translation()(2);
-  // TODO: Confirm
   tf::Matrix3x3 m(left_state.rotation()(0,0), left_state.rotation()(0,1), left_state.rotation()(0,2),
                   left_state.rotation()(1,0), left_state.rotation()(1,1), left_state.rotation()(1,2),
                   left_state.rotation()(2,0), left_state.rotation()(2,1), left_state.rotation()(2,2));
   double roll, pitch, yaw;
   m.getRPY(roll, pitch, yaw);
-  // TODO: Confirm
-  // pose(3) = yaw;
-  // pose(4) = pitch;
-  // pose(5) = roll;
-  // Eigen::Quaterniond q(left_state.rotation());
-  // pose(3) = q.w();
-  // pose(4) = q.x();
-  // pose(5) = q.y();
-  // pose(6) = q.z();
-  // ROS_DEBUG_STREAM_NAMED("generalik","q: " << q.coeffs());
+  pose(3) = roll;
+  pose(4) = pitch;
+  pose(5) = yaw;
+  
+  pose(6) = right_state.translation()(0);
+  pose(7) = right_state.translation()[1];
+  pose(8) = right_state.translation()(2);
+  tf::Matrix3x3 m2(right_state.rotation()(0,0), right_state.rotation()(0,1), right_state.rotation()(0,2),
+                   right_state.rotation()(1,0), right_state.rotation()(1,1), right_state.rotation()(1,2),
+                   right_state.rotation()(2,0), right_state.rotation()(2,1), right_state.rotation()(2,2));
+  m2.getRPY(roll, pitch, yaw);
+  pose(9) = roll;
+  pose(10) = pitch;
+  pose(11) = yaw;
+  
   return pose;
 }
 
@@ -576,25 +582,13 @@ Eigen::MatrixXd GeneralIKKinematicsPlugin::getJacobian(const Eigen::VectorXd& qc
   if (!success) {
     ROS_ERROR_STREAM_NAMED("generalik","Error calculating J_right: " << std::endl << J_right);
   }
-  // success = kinematic_state->getJacobian(robot_model_->getJointModelGroup("torso"), // TODO: Abstract out group
-  //                                        kinematic_state->getLinkModel(getTipFrames()[0]),
-  //                                        reference_point_position,
-  //                                        J_torso_left);
-  // if (!success) {
-  //   ROS_ERROR_STREAM_NAMED("generalik","Error calculating J_torso_left: " << std::endl << J_torso_left);
-  // }
-  // success = kinematic_state->getJacobian(robot_model_->getJointModelGroup("torso"), // TODO: Abstract out group
-  //                                        kinematic_state->getLinkModel(getTipFrames()[1]),
-  //                                        reference_point_position,
-  //                                        J_torso_right);
-  // if (!success) {
-  //   ROS_ERROR_STREAM_NAMED("generalik","Error calculating J_torso_right: " << std::endl << J_torso_right);
-  // }
 
-  J.resize(6, 15);
+  J.resize(12, 15);
   J << J_left.block<3,1>(0, 0), J_left.block<3,7>(0, 1), Eigen::MatrixXd::Zero(3, 7),
-      J_right.block<3,1>(0, 0), Eigen::MatrixXd::Zero(3, 7), J_right.block<3,7>(0, 1);
-  ROS_DEBUG_STREAM_NAMED("generalik","J: " << std::endl << J);
+       J_left.block<3,1>(3, 0), J_left.block<3,7>(3, 1), Eigen::MatrixXd::Zero(3, 7),
+      J_right.block<3,1>(0, 0), Eigen::MatrixXd::Zero(3, 7), J_right.block<3,7>(0, 1),
+      J_right.block<3,1>(3, 0), Eigen::MatrixXd::Zero(3, 7), J_right.block<3,7>(3, 1);
+  // ROS_DEBUG_STREAM_NAMED("generalik","J: " << std::endl << J);
   return J;
 }
 
@@ -607,12 +601,12 @@ Eigen::MatrixXd GeneralIKKinematicsPlugin::pinv( const Eigen::MatrixXd &b, doubl
   // return false;
   bool flip = false;
   Eigen::MatrixXd a;
-  // if( a.rows() < a.cols() )
-  // {
-  //   a = b.transpose();
-  //   flip = true;
-  // }
-  // else
+  if( a.rows() < a.cols() )
+  {
+    a = b.transpose();
+    flip = true;
+  }
+  else
     a = b;
 
   // SVD
