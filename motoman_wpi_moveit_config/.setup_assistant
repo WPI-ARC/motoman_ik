@@ -3,6 +3,6 @@ moveit_setup_assistant_config:
     package: motoman_sda10f_support
     relative_path: urdf/sda10f.xacro
   SRDF:
-    relative_path: config/motoman_sda10f.srdf
+    relative_path: config/motoman.srdf
   CONFIG:
-    generated_timestamp: 1409751299
+    generated_timestamp: 1425585179

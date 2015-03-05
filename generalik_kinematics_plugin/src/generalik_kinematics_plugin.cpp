@@ -87,25 +87,25 @@ bool GeneralIKKinematicsPlugin::initialize(const std::string &robot_description,
 
   robot_model_.reset(new robot_model::RobotModel(urdf_model, srdf));
 
-  robot_model::JointModelGroup* joint_model_group = robot_model_->getJointModelGroup(group_name);
-  if (!joint_model_group)
+  joint_model_group_ = robot_model_->getJointModelGroup(group_name);
+  if (!joint_model_group_)
     return false;
   
-  if(!joint_model_group->isSingleDOFJoints())
+  if(!joint_model_group_->isSingleDOFJoints())
   {
     ROS_ERROR_NAMED("generalik","Group '%s' includes joints that have more than 1 DOF", group_name.c_str());
     return false;
   }
 
-  dimension_ = joint_model_group->getActiveJointModels().size() + joint_model_group->getMimicJointModels().size();
-  for (std::size_t i=0; i < joint_model_group->getJointModels().size(); ++i)
+  dimension_ = joint_model_group_->getActiveJointModels().size() + joint_model_group_->getMimicJointModels().size();
+  for (std::size_t i=0; i < joint_model_group_->getJointModels().size(); ++i)
   {
-    if(joint_model_group->getJointModels()[i]->getType() == moveit::core::JointModel::REVOLUTE || joint_model_group->getJointModels()[i]->getType() == moveit::core::JointModel::PRISMATIC)
+    if(joint_model_group_->getJointModels()[i]->getType() == moveit::core::JointModel::REVOLUTE || joint_model_group_->getJointModels()[i]->getType() == moveit::core::JointModel::PRISMATIC)
     {
-      ik_chain_info_.joint_names.push_back(joint_model_group->getJointModelNames()[i]);
+      ik_chain_info_.joint_names.push_back(joint_model_group_->getJointModelNames()[i]);
       ROS_DEBUG_STREAM_NAMED("generalik","Joint[" << i <<"]: "
-                             << joint_model_group->getJointModelNames()[i]);
-      const std::vector<moveit_msgs::JointLimits> &jvec = joint_model_group->getJointModels()[i]->getVariableBoundsMsg();
+                             << joint_model_group_->getJointModelNames()[i]);
+      const std::vector<moveit_msgs::JointLimits> &jvec = joint_model_group_->getJointModels()[i]->getVariableBoundsMsg();
       ik_chain_info_.limits.insert(ik_chain_info_.limits.end(), jvec.begin(), jvec.end());
     }
   }
@@ -115,48 +115,52 @@ bool GeneralIKKinematicsPlugin::initialize(const std::string &robot_description,
 
   for (std::size_t i=0; i < getTipFrames().size(); ++i)
   {
-    if(!joint_model_group->hasLinkModel(getTipFrames()[i]))
+    if (!joint_model_group_->hasLinkModel(getTipFrames()[i]))
     {
       ROS_ERROR_NAMED("generalik","Could not find tip name in joint group '%s'", group_name.c_str());
       return false;
     }
     ik_chain_info_.link_names.push_back(getTipFrames()[0]);
   }
-  fk_chain_info_.link_names = joint_model_group->getLinkModelNames();
+  fk_chain_info_.link_names = joint_model_group_->getLinkModelNames();
 
   joint_min_.resize(ik_chain_info_.limits.size());
   joint_max_.resize(ik_chain_info_.limits.size());
 
-  for(unsigned int i=0; i < ik_chain_info_.limits.size(); i++)
+  for (unsigned int i=0; i < ik_chain_info_.limits.size(); i++)
   {
+    ROS_DEBUG_STREAM_NAMED("generalik","Joint[" << i <<"]: "
+                           << joint_model_group_->getJointModelNames()[i]
+                           << " -- "
+                           << ik_chain_info_.joint_names[i]);
     joint_min_(i) = ik_chain_info_.limits[i].min_position;
     joint_max_(i) = ik_chain_info_.limits[i].max_position;
   }
 
   // Get Solver Parameters
-  int max_solver_iterations;
-  double epsilon;
-  bool position_ik;
-
-  private_handle.param("max_solver_iterations", max_solver_iterations, 500);
-  private_handle.param("epsilon", epsilon, 1e-5);
-  private_handle.param(group_name+"/position_only_ik", position_ik, false);
+  std::string prefix = rdf_loader.getRobotDescription()+"_kinematics/"+group_name+"/";
+  
+  private_handle.param(prefix+"kinematics_solver_step_size", step_size_, 0.1);
+  private_handle.param(prefix+"max_solver_iterations", max_solver_iterations_, 500);
+  private_handle.param(prefix+"kinematics_solver_check_limits", check_joint_limits_, true);
+  private_handle.param(prefix+"kinematics_solver_tolerance", tolerance_, 0.002);
+  private_handle.param(prefix+"epsilon", epsilon_, 1e-5);
+  private_handle.param(group_name+"/position_only_ik", position_ik_, false);
   ROS_DEBUG_NAMED("generalik","Looking in private handle: %s for param name: %s",
             private_handle.getNamespace().c_str(),
             (group_name+"/position_only_ik").c_str());
 
-  if(position_ik)
+  ROS_WARN_STREAM_NAMED("generalik","kinematics_solver_step_size: " << step_size_);
+  ROS_WARN_STREAM_NAMED("generalik","max_solver_iterations: " << max_solver_iterations_);
+  ROS_WARN_STREAM_NAMED("generalik","kinematics_solver_check_limits: " << check_joint_limits_);
+  ROS_WARN_STREAM_NAMED("generalik","kinematics_solver_tolerance: " << tolerance_);
+  ROS_WARN_STREAM_NAMED("generalik","epsilon: " <<  epsilon_);
+  
+  if (position_ik_)
     ROS_INFO_NAMED("generalik","Using position only ik");
 
   // Setup the joint state groups that we need
   state_.reset(new robot_state::RobotState(robot_model_));
-  state_2_.reset(new robot_state::RobotState(robot_model_));
-
-  // Store things for when the set of redundant joints may change
-  position_ik_ = position_ik;
-  joint_model_group_ = joint_model_group;
-  max_solver_iterations_ = max_solver_iterations;
-  epsilon_ = epsilon;
 
   active_ = true;
   ROS_DEBUG_NAMED("generalik","GeneralIK solver initialized");
@@ -310,71 +314,55 @@ bool GeneralIKKinematicsPlugin::searchPositionIK(const std::vector<geometry_msgs
                                            const kinematics::KinematicsQueryOptions &options,
                                            const moveit::core::RobotState* context_state) const
 {
-  ROS_WARN_STREAM_NAMED("generalik","Searching for "<<ik_poses.size()<<" solutions.");
-  
   ros::WallTime n1 = ros::WallTime::now();
-  if(!active_)
+  if (!active_)
   {
     ROS_ERROR_NAMED("generalik","kinematics not active");
     error_code.val = error_code.NO_IK_SOLUTION;
     return false;
   }
 
-  if(ik_seed_state.size() != dimension_)
+  if (ik_seed_state.size() != dimension_)
   {
     ROS_ERROR_STREAM_NAMED("generalik","Seed state must have size " << dimension_ << " instead of size " << ik_seed_state.size());
     error_code.val = error_code.NO_IK_SOLUTION;
     return false;
   }
 
-  if(!consistency_limits.empty() && consistency_limits.size() != dimension_)
+  if (!consistency_limits.empty() && consistency_limits.size() != dimension_)
   {
     ROS_ERROR_STREAM_NAMED("generalik","Consistency limits be empty or must have size " << dimension_ << " instead of size " << consistency_limits.size());
     error_code.val = error_code.NO_IK_SOLUTION;
     return false;
   }
-  
-  solution.resize(dimension_);
-
-  ROS_DEBUG_STREAM_NAMED("generalik","searchPositionIK2: Position request pose[0] is " <<
-                   ik_poses[0].position.x << " " <<
-                   ik_poses[0].position.y << " " <<
-                   ik_poses[0].position.z << " " <<
-                   ik_poses[0].orientation.x << " " <<
-                   ik_poses[0].orientation.y << " " <<
-                   ik_poses[0].orientation.z << " " <<
-                   ik_poses[0].orientation.w);
-  ROS_DEBUG_STREAM_NAMED("generalik","searchPositionIK2: Position request pose[1] is " <<
-                   ik_poses[1].position.x << " " <<
-                   ik_poses[1].position.y << " " <<
-                   ik_poses[1].position.z << " " <<
-                   ik_poses[1].orientation.x << " " <<
-                   ik_poses[1].orientation.y << " " <<
-                   ik_poses[1].orientation.z << " " <<
-                   ik_poses[1].orientation.w);  
 
   // Do the IK
   std::vector<double> ik_in_state = ik_seed_state;
   std::vector<double> ik_out_state(dimension_);
+  solution.resize(dimension_);
 
   unsigned int counter(0);
-  while(1)
+  while (1)
   {
-    ROS_WARN_NAMED("generalik","Iteration: %d, time: %f, Timeout: %f",counter,(ros::WallTime::now()-n1).toSec(), timeout);
+    ROS_DEBUG_NAMED("generalik","Iteration: %d, time: %f, Timeout: %f",
+                    counter, (ros::WallTime::now()-n1).toSec(), timeout);
     counter++;
-    if(timedOut(n1,timeout))
+    if (timedOut(n1, timeout))
     {
       ROS_DEBUG_NAMED("generalik","IK timed out");
       error_code.val = error_code.TIMED_OUT;
       return false;
     }
-    // bool ik_valid = false;
+
     bool ik_valid = solvePositionIK(ik_in_state, ik_poses, ik_out_state);
     ROS_DEBUG_NAMED("generalik","IK valid: %d", ik_valid);
+
+    // Set new random configuration to try again with
     if(!consistency_limits.empty())
     {
       getRandomConfiguration(ik_in_state, consistency_limits, ik_out_state);
-      if( (!ik_valid && !options.return_approximate_solution) || !checkConsistency(ik_in_state, consistency_limits, ik_out_state))
+      if ((!ik_valid && !options.return_approximate_solution)
+          || !checkConsistency(ik_in_state, consistency_limits, ik_out_state))
       {
         ROS_DEBUG_NAMED("generalik","Could not find IK solution: does not match consistency limits");
         continue;
@@ -384,27 +372,27 @@ bool GeneralIKKinematicsPlugin::searchPositionIK(const std::vector<geometry_msgs
     {
       getRandomConfiguration(ik_in_state);
       ROS_DEBUG_NAMED("generalik","New random configuration");
-      for(unsigned int j=0; j < dimension_; j++)
-        ROS_DEBUG_NAMED("generalik","%d %f", j, ik_in_state[j]);
 
-      if(!ik_valid && !options.return_approximate_solution)
+      if (!ik_valid && !options.return_approximate_solution)
       {
         ROS_DEBUG_NAMED("generalik","Could not find IK solution");
         continue;
       }
     }
+
+    // Handle solution
     ROS_DEBUG_NAMED("generalik","Found IK solution");
-    for(unsigned int j=0; j < dimension_; j++)
+    for (unsigned int j = 0; j < dimension_; j++)
       solution[j] = ik_out_state[j];
-    if(!solution_callback.empty())
+    if (!solution_callback.empty())
       solution_callback(ik_poses[0],solution,error_code);
     else
       error_code.val = error_code.SUCCESS;
 
-    if(error_code.val == error_code.SUCCESS)
+    if (error_code.val == error_code.SUCCESS)
     {
       ROS_DEBUG_STREAM_NAMED("generalik","Solved after " << counter << " iterations");
-      for(unsigned int j=0; j < dimension_; j++)
+      for (unsigned int j = 0; j < dimension_; j++)
         ROS_DEBUG_NAMED("generalik","%d %f", j, solution[j]);
       return true;
     }
@@ -418,14 +406,7 @@ bool GeneralIKKinematicsPlugin::solvePositionIK(const std::vector<double> &ik_se
                                                 const std::vector<geometry_msgs::Pose> &ik_poses,
                                                 std::vector<double> &solution) const
 {
-  // TODO: Pull out
-  int nb_steps_ = 100;
-  // double tolerance_ = 0.002;
-  double tolerance_ = 1;
-  bool check_joint_limits_ = true;
-
-  // ROS_DEBUG_NAMED("generalik","SolvePositionIK()");
-  
+  // Get target pose
   Eigen::VectorXd xdes(12);
 
   // Left Arm
@@ -455,9 +436,8 @@ bool GeneralIKKinematicsPlugin::solvePositionIK(const std::vector<double> &ik_se
   
   ROS_DEBUG_STREAM_NAMED("generalik","Target Pose: " << std::endl << xdes);
   
-  // ROS_DEBUG_NAMED("generalik","Preparing for IK loop");    
   Eigen::VectorXd qcur(ik_seed_state.size());
-  for(unsigned int i=0; i < dimension_; i++) {
+  for (unsigned int i=0; i < dimension_; i++) {
     qcur(i) = ik_seed_state[i];
   }
   double dist=.0;
@@ -465,10 +445,9 @@ bool GeneralIKKinematicsPlugin::solvePositionIK(const std::vector<double> &ik_se
   Eigen::VectorXd qnew;
   ROS_DEBUG_STREAM_NAMED("generalik","Initial Pose: " << std::endl << getPose(qcur));
 
-  // ROS_DEBUG_NAMED("generalik","Running IK loop");  
-  for( int i=0; i<nb_steps_; i++) // IK LOOP
+  for (int i = 0; i < max_solver_iterations_; i++)
   {
-    if( check_joint_limits_ ) {
+    if (check_joint_limits_) {
       ROS_DEBUG_STREAM_NAMED("generalik","Checking joint limits.");
       qnew = qcur + singleStepJointLimits(qcur, xdes);
     } else {
@@ -477,47 +456,37 @@ bool GeneralIKKinematicsPlugin::solvePositionIK(const std::vector<double> &ik_se
     }
     qcur = qnew;
     ROS_DEBUG_STREAM_NAMED("generalik","Pose: " << std::endl << getPose(qcur));
-    dist = (xdes-getPose(qcur)).norm();
+    dist = (xdes - getPose(qcur)).norm();
     ROS_DEBUG_STREAM_NAMED("generalik","diff = " << dist);
-    if( dist < tolerance_ ){
+    if (dist < tolerance_) {
       ROS_DEBUG_STREAM_NAMED("generalik","success (" << i << "), diff = " << dist);
       succeed = true;
       break;
     }
   }
 
-  ROS_WARN_STREAM_NAMED("generalik","Distance: "<<dist);
-
-  for(unsigned int i=0; i < dimension_; i++) {
+  for (unsigned int i=0; i < dimension_; i++) {
     solution[i] = qcur(i);
   }
-  // return true;
   return succeed;
 }
 
 Eigen::VectorXd GeneralIKKinematicsPlugin::singleStep(const Eigen::VectorXd& qcur,
                                                       const Eigen::VectorXd& xdes) const
 {
-  // TODO: Pull out
-  double magnitude_ = 0.1;
-
-  // ROS_DEBUG_NAMED("generalik","Running single step");  
   Eigen::VectorXd xcur = getPose(qcur);
   Eigen::VectorXd x_error = xdes - xcur;
   Eigen::MatrixXd J = getJacobian(qcur);
   Eigen::MatrixXd Jplus = pinv(J, 1e-3);
-  // ROS_DEBUG_STREAM_NAMED("generalik","J^-1: " << std::endl << Jplus);
-  Eigen::VectorXd dq = Jplus * magnitude_ * x_error;
-  // ROS_DEBUG_STREAM_NAMED("generalik","dq: " << dq);
+  ROS_DEBUG_STREAM_NAMED("generalik","J^-1: " << std::endl << Jplus);
+  Eigen::VectorXd dq = Jplus * step_size_ * x_error;
+  ROS_DEBUG_STREAM_NAMED("generalik","dq: " << dq);
   return dq;
 }
 
 Eigen::VectorXd GeneralIKKinematicsPlugin::singleStepJointLimits(const Eigen::VectorXd& qcur_init,
                                                                  const Eigen::VectorXd& xdes) const
 {
-  // TODO: Pull out
-  double magnitude_ = 0.1;
-
   Eigen::VectorXd qcur = qcur_init;
   Eigen::VectorXd xcur = getPose(qcur);
   Eigen::VectorXd x_error = xdes - xcur;
@@ -530,11 +499,12 @@ Eigen::VectorXd GeneralIKKinematicsPlugin::singleStepJointLimits(const Eigen::Ve
   do
   {
     Eigen::VectorXd qcur_old = qcur;
-    // eliminate bad joint columns from the Jacobian
+    // Eliminate bad joint columns from the Jacobian
     for(int j = 0; j < badjointinds.size(); j++)
       for(int k = 0; k < xdes.size(); k++)
-        J( k, badjointinds[j] ) = 0;
-    
+        J( k, badjointinds[j] ) = 0; // TODO: Optimize
+
+    // TODO: Use or remove
     /*
     // Damped Least-Squares (DLS)
     // Jplus = Jt * [(Jt * J ) + lambda * diag(I)]^{-1}
@@ -544,29 +514,29 @@ Eigen::VectorXd GeneralIKKinematicsPlugin::singleStepJointLimits(const Eigen::Ve
     Eigen::MatrixXd Jplus = J.transpose()*M.inverse();
     */
     
-    Eigen::MatrixXd Jplus = pinv(J, 1e-3);//.block(0, 0, qcur.size(), xdes.size());
+    Eigen::MatrixXd Jplus = pinv(J, 1e-3);
     // ROS_DEBUG_STREAM_NAMED("generalik","J^-1: " << std::endl << Jplus);
-    dq = Jplus * magnitude_ * x_error;
+    dq = Jplus * step_size_ * x_error;
     // ROS_DEBUG_STREAM_NAMED("generalik","dq: " << dq);
     // add step
     qcur = qcur_old + dq;
     limit = false;
-    for(int j =0; j<qcur.size(); j++)
+    for (int j = 0; j < qcur.size(); j++)
     {
       // if( active_joints_[j]->isJointDofCircular(0) )
       //   continue;
-      if( qcur[j] < joint_min_[j] || qcur[j] > joint_max_[j] )
+      if (qcur[j] < joint_min_[j] || qcur[j] > joint_max_[j])
       {
-        ROS_DEBUG_STREAM_NAMED("generalik","Joint limit hit: joint " << j);
+        ROS_WARN_STREAM_NAMED("generalik","Joint limit hit: joint " << j);
         badjointinds.push_back(j); // note this will never add the same joint twice, even if bClearBadJoints = false
         limit = true;
       }
     }
     
     // move back to previous point if any joint limits
-    if(limit)
+    if (limit)
       qcur = qcur_old;
-  } while(limit);
+  } while (limit);
 
   ROS_DEBUG_STREAM_NAMED("generalik","Final dq: " << dq);
   
@@ -576,12 +546,10 @@ Eigen::VectorXd GeneralIKKinematicsPlugin::singleStepJointLimits(const Eigen::Ve
 Eigen::VectorXd GeneralIKKinematicsPlugin::getPose(const Eigen::VectorXd& qcur) const
 {
   // ROS_DEBUG_NAMED("generalik","Getting Pose");  
-  // TODO: optimize by making global?
-  moveit::core::RobotStatePtr kinematic_state(new robot_state::RobotState(robot_model_));
   std::vector<double> qvec(qcur.data(), qcur.data() + qcur.size());
-  kinematic_state->setVariablePositions(getJointNames(), qvec);
-  const Eigen::Affine3d &left_state = kinematic_state->getGlobalLinkTransform(getTipFrames()[0]);
-  const Eigen::Affine3d &right_state = kinematic_state->getGlobalLinkTransform(getTipFrames()[1]);
+  state_->setVariablePositions(getJointNames(), qvec);
+  const Eigen::Affine3d &left_state = state_->getGlobalLinkTransform(getTipFrames()[0]);
+  const Eigen::Affine3d &right_state = state_->getGlobalLinkTransform(getTipFrames()[1]);
   
   Eigen::VectorXd pose(12);
 
@@ -615,24 +583,22 @@ Eigen::VectorXd GeneralIKKinematicsPlugin::getPose(const Eigen::VectorXd& qcur) 
 Eigen::MatrixXd GeneralIKKinematicsPlugin::getJacobian(const Eigen::VectorXd& qcur) const
 {
   // ROS_DEBUG_NAMED("generalik","Getting Jacobian");  
-  // TODO: optimize by making global?
-  moveit::core::RobotStatePtr kinematic_state(new robot_state::RobotState(robot_model_));
   std::vector<double> qvec(qcur.data(), qcur.data() + qcur.size());
-  kinematic_state->setVariablePositions(getJointNames(), qvec);
+  state_->setVariablePositions(getJointNames(), qvec);
   Eigen::Vector3d reference_point_position(0.0,0.0,0.0);
   Eigen::MatrixXd J, J_left, J_right;
   // Eigen::MatrixXd J, J_left, J_right, J_torso_left, J_torso_right;
-  bool success = kinematic_state->getJacobian(robot_model_->getJointModelGroup("arm_left"), // TODO: Abstract out group
-                                              kinematic_state->getLinkModel(getTipFrames()[0]),
-                                              reference_point_position,
-                                              J_left);
+  bool success = state_->getJacobian(robot_model_->getJointModelGroup("arm_left"), // TODO: Abstract out group
+                                     state_->getLinkModel(getTipFrames()[0]),
+                                     reference_point_position,
+                                     J_left);
   if (!success) {
     ROS_ERROR_STREAM_NAMED("generalik","Error calculating J_left: " << std::endl << J_left);
   }
-  success = kinematic_state->getJacobian(robot_model_->getJointModelGroup("arm_right"), // TODO: Abstract out group
-                                         kinematic_state->getLinkModel(getTipFrames()[1]),
-                                         reference_point_position,
-                                         J_right);
+  success = state_->getJacobian(robot_model_->getJointModelGroup("arm_right"), // TODO: Abstract out group
+                                state_->getLinkModel(getTipFrames()[1]),
+                                reference_point_position,
+                                J_right);
   if (!success) {
     ROS_ERROR_STREAM_NAMED("generalik","Error calculating J_right: " << std::endl << J_right);
   }
@@ -640,8 +606,8 @@ Eigen::MatrixXd GeneralIKKinematicsPlugin::getJacobian(const Eigen::VectorXd& qc
   J.resize(12, 15);
   J << J_left.block<3,1>(0, 0), J_left.block<3,7>(0, 1), Eigen::MatrixXd::Zero(3, 7),
        J_left.block<3,1>(3, 0), J_left.block<3,7>(3, 1), Eigen::MatrixXd::Zero(3, 7),
-      J_right.block<3,1>(0, 0), Eigen::MatrixXd::Zero(3, 7), J_right.block<3,7>(0, 1),
-      J_right.block<3,1>(3, 0), Eigen::MatrixXd::Zero(3, 7), J_right.block<3,7>(3, 1);
+       J_right.block<3,1>(0, 0), Eigen::MatrixXd::Zero(3, 7), J_right.block<3,7>(0, 1),
+       J_right.block<3,1>(3, 0), Eigen::MatrixXd::Zero(3, 7), J_right.block<3,7>(3, 1);
   // ROS_DEBUG_STREAM_NAMED("generalik","J: " << std::endl << J);
   return J;
 }
@@ -655,7 +621,7 @@ Eigen::MatrixXd GeneralIKKinematicsPlugin::pinv( const Eigen::MatrixXd &b, doubl
   // return false;
   bool flip = false;
   Eigen::MatrixXd a;
-  if( a.rows() < a.cols() )
+  if (a.rows() < a.cols())
   {
     a = b.transpose();
     flip = true;
@@ -665,7 +631,7 @@ Eigen::MatrixXd GeneralIKKinematicsPlugin::pinv( const Eigen::MatrixXd &b, doubl
 
   // SVD
   Eigen::JacobiSVD<Eigen::MatrixXd> svdA;
-  svdA.compute( a, Eigen::ComputeFullU | Eigen::ComputeThinV );
+  svdA.compute(a, Eigen::ComputeFullU | Eigen::ComputeThinV);
 
   Eigen::JacobiSVD<Eigen::MatrixXd>::SingularValuesType vSingular = svdA.singularValues();
 
@@ -674,23 +640,23 @@ Eigen::MatrixXd GeneralIKKinematicsPlugin::pinv( const Eigen::MatrixXd &b, doubl
   // is formed by replacing every nonzero entry by its reciprocal (inversing).
   Eigen::VectorXd vPseudoInvertedSingular( svdA.matrixV().cols() );
 
-  for (int iRow=0; iRow<vSingular.rows(); iRow++)
+  for (int iRow = 0; iRow < vSingular.rows(); iRow++)
   {
-    if ( fabs(vSingular(iRow)) <= rcond ) // Todo : Put epsilon in parameter
+    if (fabs(vSingular(iRow)) <= rcond) // TODO: Put epsilon in parameter
     {
-      vPseudoInvertedSingular(iRow)=0.;
+      vPseudoInvertedSingular(iRow) = 0.;
     }
     else
-      vPseudoInvertedSingular(iRow)=1./vSingular(iRow);
+      vPseudoInvertedSingular(iRow) = 1./vSingular(iRow);
   }
 
   // A little optimization here
-  Eigen::MatrixXd mAdjointU = svdA.matrixU().adjoint().block( 0, 0, vSingular.rows(), svdA.matrixU().adjoint().cols() );
+  Eigen::MatrixXd mAdjointU = svdA.matrixU().adjoint().block(0, 0, vSingular.rows(), svdA.matrixU().adjoint().cols());
 
   // Pseudo-Inversion : V * S * U'
   Eigen::MatrixXd a_pinv = (svdA.matrixV() * vPseudoInvertedSingular.asDiagonal()) * mAdjointU;
 
-  if( flip )
+  if (flip)
   {
     a = a.transpose();
     a_pinv = a_pinv.transpose();
@@ -703,6 +669,7 @@ bool GeneralIKKinematicsPlugin::getPositionFK(const std::vector<std::string> &li
                                         const std::vector<double> &joint_angles,
                                         std::vector<geometry_msgs::Pose> &poses) const
 {
+  // TODO: Implement
   // ros::WallTime n1 = ros::WallTime::now();
   // if(!active_)
   // {
@@ -758,16 +725,7 @@ const std::vector<std::string>& GeneralIKKinematicsPlugin::getLinkNames() const
 const bool GeneralIKKinematicsPlugin::supportsGroup(const moveit::core::JointModelGroup *jmg,
                                               std::string* error_text_out) const
 {
-  // Default implementation for legacy solvers:
-  // if (!jmg->isChain())
-  // {
-  //   if(error_text_out)
-  //   {
-  //     *error_text_out = "This plugin only supports joint groups which are chains";
-  //   }
-  //   return false;
-  // }
-
+  // Note: Should probably verify that it can really support the tree
   return true;
 }
 

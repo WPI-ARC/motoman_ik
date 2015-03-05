@@ -188,7 +188,7 @@ namespace generalik_kinematics_plugin
 
     robot_model::RobotModelPtr robot_model_;
 
-    robot_state::RobotStatePtr state_, state_2_;
+    robot_state::RobotStatePtr state_;
 
     Eigen::VectorXd joint_min_;
     Eigen::VectorXd joint_max_;
@@ -199,7 +199,10 @@ namespace generalik_kinematics_plugin
     // Storage required for when the set of redundant joints is reset
     bool position_ik_; //whether this solver is only being used for position ik
     robot_model::JointModelGroup* joint_model_group_;
-    double max_solver_iterations_;
+    double step_size_;
+    int max_solver_iterations_;
+    bool check_joint_limits_;
+    double tolerance_;
     double epsilon_;
   };
 }
