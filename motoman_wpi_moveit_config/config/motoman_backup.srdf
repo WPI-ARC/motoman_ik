@@ -125,41 +125,7 @@
     <disable_collisions link1="arm_right_link_5_r" link2="arm_right_link_6_b" reason="Adjacent" />
     <disable_collisions link1="arm_right_link_5_r" link2="arm_right_link_7_t" reason="Never" />
     <disable_collisions link1="arm_right_link_6_b" link2="arm_right_link_7_t" reason="Adjacent" />
-
-    <disable_collisions link1="hand_right_palm" link2="arm_right_link_7_t" reason="Adjacent" />
-    <disable_collisions link1="hand_right_palm" link2="hand_right_finger_middle_link_0" reason="Adjacent" />
-    <disable_collisions link1="hand_right_palm" link2="hand_right_finger_middle_link_1" reason="Never" />
-    <disable_collisions link1="hand_right_finger_middle_link_1" link2="hand_right_finger_middle_link_2" reason="Adjacent" />
-    <disable_collisions link1="hand_right_finger_middle_link_2" link2="hand_right_finger_middle_link_3" reason="Adjacent" />
-    <disable_collisions link1="hand_right_palm" link2="hand_right_finger_1_link_0" reason="Adjacent" />
-    <disable_collisions link1="hand_right_palm" link2="hand_right_finger_1_link_1" reason="Never" />
-    <disable_collisions link1="hand_right_finger_1_link_0" link2="hand_right_finger_1_link_1" reason="Adjacent" />
-    <disable_collisions link1="hand_right_finger_1_link_1" link2="hand_right_finger_1_link_2" reason="Adjacent" />
-    <disable_collisions link1="hand_right_finger_1_link_2" link2="hand_right_finger_1_link_3" reason="Adjacent" />
-    <disable_collisions link1="hand_right_palm" link2="hand_right_finger_2_link_0" reason="Adjacent" />
-    <disable_collisions link1="hand_right_palm" link2="hand_right_finger_2_link_1" reason="Never" />
-    <disable_collisions link1="hand_right_finger_2_link_0" link2="hand_right_finger_2_link_1" reason="Adjacent" />
-    <disable_collisions link1="hand_right_finger_2_link_1" link2="hand_right_finger_2_link_2" reason="Adjacent" />
-    <disable_collisions link1="hand_right_finger_2_link_2" link2="hand_right_finger_2_link_3" reason="Adjacent" />
-    <disable_collisions link1="hand_left_palm" link2="arm_left_link_7_t" reason="Adjacent" />
-
-    <disable_collisions link1="hand_left_palm" link2="hand_left_finger_middle_link_0" reason="Adjacent" />
-    <disable_collisions link1="hand_left_palm" link2="hand_left_finger_middle_link_1" reason="Never" />
-    <disable_collisions link1="hand_left_finger_middle_link_1" link2="hand_left_finger_middle_link_2" reason="Adjacent" />
-    <disable_collisions link1="hand_left_finger_middle_link_2" link2="hand_left_finger_middle_link_3" reason="Adjacent" />
-    <disable_collisions link1="hand_left_palm" link2="hand_left_finger_1_link_0" reason="Adjacent" />
-    <disable_collisions link1="hand_left_palm" link2="hand_left_finger_1_link_1" reason="Never" />
-    <disable_collisions link1="hand_left_finger_1_link_0" link2="hand_left_finger_1_link_1" reason="Adjacent" />
-    <disable_collisions link1="hand_left_finger_1_link_1" link2="hand_left_finger_1_link_2" reason="Adjacent" />
-    <disable_collisions link1="hand_left_finger_1_link_2" link2="hand_left_finger_1_link_3" reason="Adjacent" />
-    <disable_collisions link1="hand_left_palm" link2="hand_left_finger_2_link_0" reason="Adjacent" />
-    <disable_collisions link1="hand_left_palm" link2="hand_left_finger_2_link_1" reason="Never" />
-    <disable_collisions link1="hand_left_finger_2_link_0" link2="hand_left_finger_2_link_1" reason="Adjacent" />
-    <disable_collisions link1="hand_left_finger_2_link_1" link2="hand_left_finger_2_link_2" reason="Adjacent" />
-    <disable_collisions link1="hand_left_finger_2_link_2" link2="hand_left_finger_2_link_3" reason="Adjacent" />
-
     <disable_collisions link1="base_link" link2="torso_link_b1" reason="Adjacent" />
     <disable_collisions link1="base_link" link2="torso_link_b2" reason="Adjacent" />
     <disable_collisions link1="torso_link_b1" link2="torso_link_b2" reason="Default" />
-
 </robot>
