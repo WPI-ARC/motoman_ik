@@ -2,14 +2,17 @@
 import sys
 import copy
 import rospy
+import StringIO
 from std_msgs.msg import String
 from std_msgs.msg import Header
+from std_msgs.msg import Int64
+from StringIO import StringIO
 
 import moveit_commander
 
 import moveit_msgs.msg
 from moveit_msgs.msg import PositionIKRequest, RobotState
-
+from moveit_msgs.msg import RobotTrajectory
 from moveit_msgs.srv import GetPositionIK, GetPositionIKRequest
 
 import geometry_msgs.msg
@@ -18,6 +21,8 @@ from geometry_msgs.msg import PoseStamped, Pose, Point, Quaternion
 from sensor_msgs.msg import JointState
 from goal_pos_generate import generate_goal_points
 
+#global trajectory
+#trajectory = []
 
 def Get_current_state(group):
 	return	JointState(
@@ -126,12 +131,30 @@ def pos_test(pose_targets, group_handle, IK_handle, animate_result = False):
 			if animate_result:
 				print ">>>>>>>>>>>>>>> Displaying No.", count, "trajectory >>>>>>>>>>>>>>>"
 				if len(TargetJointValue):
+<<<<<<< HEAD:auto_test/script/IK_solver_test.py
 					   group.set_joint_value_target(TargetJointValue);
 					   plan = group.plan();	
 					   #rospy.sleep(2);
 					   #print ">>>>>>>>>>>>> Actuate trajectory >>>>>>>>>>>>>"
 					   group.go();
 					   rospy.sleep(2);
+=======
+					group.set_joint_value_target(TargetJointValue);
+					plan = group.plan();
+					if( count%2 == 0):
+					  buf = StringIO();
+					  plan.serialize(buf);
+					  print "traj",count," in text"
+					  #trajectory.append(buf.getvalue())
+					  file_name = "traj_file"+str(count)
+					  f = open(file_name,"w") 
+					  f.write(buf.getvalue())
+					  f.close()					  	
+					#rospy.sleep(2);
+					#print ">>>>>>>>>>>>> Actuate trajectory >>>>>>>>>>>>>"
+					group.go();
+					#rospy.sleep(2);
+>>>>>>> 8f0348680a81ade1e71be611aab576081e657106:auto_test/IK_solver_test.py
 					
 	if success_number == test_number:
 		print "Available for all position!";
@@ -149,7 +172,7 @@ if __name__=='__main__':
   try:
 	#Init_Right_Hand_Pos = [0.323265,-0.499221,1.07222, -0.4838, 0.515602, 0.5159, -0.48353];
 	if len(sys.argv)>1:
-	  print len(sys.argv);
+	  #print len(sys.argv);
 	  X_pos = float(sys.argv[1]);
 	  Y_pos = float(sys.argv[2]);
 	  Z_pos = float(sys.argv[3]);
@@ -166,8 +189,15 @@ if __name__=='__main__':
 	rospy.init_node('IK_Solution_Test', anonymous=True);  
 	robot = moveit_commander.RobotCommander();
 	scene = moveit_commander.PlanningSceneInterface();
+<<<<<<< HEAD:auto_test/script/IK_solver_test.py
 	arm_left_group = moveit_commander.MoveGroupCommander("arm_left");	
 	arm_left_group.set_planner_id("RRTstarkConfigDefault");	
+=======
+	arm_left_group = moveit_commander.MoveGroupCommander("arm_left");
+	
+	arm_left_group.set_planner_id("RRTstarkConfigDefault");
+
+>>>>>>> 8f0348680a81ade1e71be611aab576081e657106:auto_test/IK_solver_test.py
 	print ">>>>>>>>>>>>> Waiting for service `compute_ik` >>>>>>>>>>>>";
 	rospy.wait_for_service('compute_ik');
 	ik = rospy.ServiceProxy("compute_ik", GetPositionIK);
