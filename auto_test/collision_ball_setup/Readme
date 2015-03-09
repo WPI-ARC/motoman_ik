@@ -1,0 +1,7 @@
+
+ # Do remember save the original one first:)
+
+1 Copy "robotiq_s_model_visualization" to src/robotiq-indigo-devel-custom. Replace original one.
+2 Copy "urdf"  to motoman/motoman_sda10f_support, replace original one
+
+
