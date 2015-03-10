@@ -72,6 +72,34 @@ def Bin_number(count):
 		return 11;
 	else:
 		return 12;
+
+def pos_init(left_arm_group_handle, right_arm_group_handle):
+	
+	right_arm_init_pos = geometry_msgs.msg.Pose();	
+	left_arm_init_pos = geometry_msgs.msg.Pose();
+				
+	right_arm_init_pos.orientation.x = -0.50;
+	right_arm_init_pos.orientation.y = -0.50;		
+	right_arm_init_pos.orientation.z = 0.50;
+	right_arm_init_pos.orientation.w = 0.50;	
+	right_arm_init_pos.position.x = 0.1;
+	right_arm_init_pos.position.y = -0.5;
+	right_arm_init_pos.position.z = 0.68;
+	
+	left_arm_init_pos.orientation.x = -0.50;
+	left_arm_init_pos.orientation.y = -0.50;		
+	left_arm_init_pos.orientation.z = 0.50;
+	left_arm_init_pos.orientation.w = 0.50;	
+	left_arm_init_pos.position.x = 0.1;
+	left_arm_init_pos.position.y = 0.5;
+	left_arm_init_pos.position.z = 0.68;	
+	
+	left_arm_group_handle.set_pose_target(left_arm_init_pos);
+	right_arm_group_handle.set_pose_target(right_arm_init_pos);	
+	
+	left_arm_group_handle.go();
+	right_arm_group_handle.go();	
+	
 		
 def Copy_joint_value(group_name, joint_values):
 	count = 0;
@@ -106,11 +134,11 @@ def pos_test(pose_targets, group_handle, IK_handle, animate_result = False):
 	for pose_target in pose_targets:
 		count += 1;		
 		#print "Start Planning No.", count, "Trajectory";		
-		target = geometry_msgs.msg.Pose();		
-		target.orientation.x = 0.50;
-		target.orientation.y = -0.50;		
-		target.orientation.z = -0.50;
-		target.orientation.w = 0.507;	
+		target = geometry_msgs.msg.Pose();	
+		target.orientation.x = pose_target.qx;
+		target.orientation.y = pose_target.qy;		
+		target.orientation.z = pose_target.qz;
+		target.orientation.w = pose_target.qw;	
 		target.position.x = pose_target.x;
 		target.position.y = pose_target.y;
 		target.position.z = pose_target.z;
@@ -122,34 +150,35 @@ def pos_test(pose_targets, group_handle, IK_handle, animate_result = False):
 		if result.error_code.val != 1:
 			print "Bin ", Bin_number(count), "test failed!";
 			
-		else:			
-			#print result.solution.joint_state;			
-			success_number += 1;			
+		else:
+			success_number += 1;	
+					
 			TargetJointValue = Copy_joint_value(group_handle.get_name(),result.solution.joint_state.position);
 			
-			#print "Target joint value:", TargetJointValue;				
-			
 			if animate_result:
+				
 				print ">>>>>>>>>>>>>>> Displaying No.", count, "trajectory >>>>>>>>>>>>>>>"
+				
 				if len(TargetJointValue):
 					group.set_joint_value_target(TargetJointValue);
 					plan = group.plan();
-					rospy.sleep(2);
-					if(count%2 == 0):
-						buf = StringIO();
-						plan.serialize(buf);
-						print "traj",count," in text";
-						file_name = "traj_file"+str(count);
-						f = open(file_name,"w") ;
-						f.write(buf.getvalue());
-						f.close();							  	
+										
+					# Save trajectory to file			
+					buf = StringIO();
+					plan.serialize(buf);					
+					file_name = "traj_file"+str(count);	
+					print "saving No.",count,"trajectory to file",file_name;					
+					f = open(file_name,"w");
+					f.write(buf.getvalue());
+					f.close();
+									
 					group.go();
 					
 	if success_number == test_number:
 		print "Available for all position!";
 		return True;
 	else:
-		print "Can't find solution for all target position!"
+		print "Can't find IK solution for all target position!"
 		print "Success ratio:", success_number, "/",test_number;
 		return False;
   else:
@@ -158,38 +187,32 @@ def pos_test(pose_targets, group_handle, IK_handle, animate_result = False):
 
 if __name__=='__main__':
   try:
-	  
-	#Init_Right_Hand_Pos = [0.323265,-0.499221,1.07222, -0.4838, 0.515602, 0.5159, -0.48353];
 	
+	print ">>>> Initializing... >>>>"
+	moveit_commander.roscpp_initialize(sys.argv);
+	rospy.init_node('IK_Solution_Test', anonymous=True);  
+	robot = moveit_commander.RobotCommander();
+	scene = moveit_commander.PlanningSceneInterface();	
+	
+	print ">>>> Import Bin model, Generate Testing Targets >>>>"
 	if len(sys.argv)>1:
 	  X_pos = float(sys.argv[1]);
 	  Y_pos = float(sys.argv[2]);
-	  Z_pos = float(sys.argv[3]);
+	  Z_pos = float(sys.argv[3]);	  
 	else:
-	  print "No distance assigned, using default parameters: 1.32m, 0m, 0m"
+	  print "No distance assigned, using default parameters"
 	  X_pos = 1.32;
 	  Y_pos = 0;
 	  Z_pos = 0;
 	  
-	Goal_points = generate_goal_points(Bin_base_x = X_pos, Bin_base_y = Y_pos, Bin_base_z = Z_pos, Test_Depth = 0.2);
-	
-	print "============ Initializing... ============="
-	moveit_commander.roscpp_initialize(sys.argv);
-	rospy.init_node('IK_Solution_Test', anonymous=True);  
-	robot = moveit_commander.RobotCommander();
-	scene = moveit_commander.PlanningSceneInterface();
-	
-	arm_left_group = moveit_commander.MoveGroupCommander("arm_left");	
-	arm_left_group.set_planner_id("RRTstarkConfigDefault");	
-
-	print ">>>>>>>>>>>>> Waiting for service `compute_ik` >>>>>>>>>>>>";
-	rospy.wait_for_service('compute_ik');
-	ik = rospy.ServiceProxy("compute_ik", GetPositionIK);
+	Goal_points = generate_goal_points(Bin_base_x = X_pos, Bin_base_y = Y_pos, Bin_base_z = Z_pos);
+	print "Total", len(Goal_points), "targets need to be test";
 	
 	bin_pose = PoseStamped();
-	bin_pose.pose.position.x = 1.32;
-	bin_pose.pose.position.y = 0;
-	bin_pose.pose.position.z = 0;
+	bin_pose.pose.position.x = X_pos;
+	bin_pose.pose.position.y = Y_pos;
+	bin_pose.pose.position.z = Z_pos;
+	
 	bin_pose.pose.orientation.x = 0.5;	
 	bin_pose.pose.orientation.y = 0.5;	
 	bin_pose.pose.orientation.z = 0.5;	
@@ -198,12 +221,25 @@ if __name__=='__main__':
 	scene.attach_mesh(link = "base_link", 
 					  name = "kiva_pod", 
 					  pose = bin_pose,
-					  filename = "pod_lowres.stl");
+					  filename = "Model/pod_lowres.stl");
+	
+	print ">>>> Set Init Position >>>>"
+	arm_left_group = moveit_commander.MoveGroupCommander("arm_left");	
+	arm_left_group.set_planner_id("RRTstarkConfigDefault");	
+	arm_left_group.allow_replanning(True);	
+	arm_right_group = moveit_commander.MoveGroupCommander("arm_right"); 
+	arm_right_group.set_planner_id("RRTstarkConfigDefault");	
+	arm_right_group.allow_replanning(True);	
+	pos_init(arm_left_group, arm_right_group);
+	
+	print ">>>> Waiting for service `compute_ik` >>>>";
+	rospy.wait_for_service('compute_ik');
+	ik = rospy.ServiceProxy("compute_ik", GetPositionIK);
 					  
-	print ">>>>>>>>>>>>>> Start Testing >>>>>>>>>>>>>>"
+	print ">>>> Start Testing >>>>"
 	pos_test(Goal_points,arm_left_group, ik, animate_result = True)		
 	
-	print "**************** Test End ****************"
+	print "**** Test End ****"
 	moveit_commander.roscpp_shutdown()
     
   except rospy.ROSInterruptException:

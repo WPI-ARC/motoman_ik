@@ -91,15 +91,14 @@ def Copy_joint_value(group_name, joint_values):
 		
 def pos_test(group_handle):
 
-  for i in range(1,13):
-      file_name = "traj_file"+str(i*2)  
+  for i in range(1,12):
+      file_name = "traj_file"+str(i)  
       f = open(file_name,"r")
       plan = RobotTrajectory()
       buf = f.read()
       plan.deserialize(buf)
       #print plan
       display_trajectory = moveit_msgs.msg.DisplayTrajectory()
-
       display_trajectory.trajectory_start = robot.get_current_state()
       display_trajectory.trajectory.append(plan)
       display_trajectory_publisher.publish(display_trajectory);
@@ -117,7 +116,6 @@ if __name__=='__main__':
 	robot = moveit_commander.RobotCommander();
 	scene = moveit_commander.PlanningSceneInterface();
 	arm_left_group = moveit_commander.MoveGroupCommander("arm_left");
-	
 	arm_left_group.set_planner_id("RRTstarkConfigDefault");
 	
 	display_trajectory_publisher = rospy.Publisher(

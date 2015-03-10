@@ -5,13 +5,16 @@ class testpnt:
 		self.x = 0;
 		self.y = 0;
 		self.z = 0;
-		""" Function doc """
+		self.qx = 0;
+		self.qy = 0;
+		self.qz = 0;        
+		self.qw = 0;
 		
-def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z, Test_Depth):
+def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z):
 	goal_pos = [];
 	bin_values = [];
     
-        # Gripper dimension
+    # Gripper dimension
 	GripperLength = 0.2;
 	# Bin dimension Unit m
 	Bin_depth = 0.430;
@@ -45,14 +48,19 @@ def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z, Test_Depth):
 	#		   Base	
 	
 	start = testpnt();
-	start.x = 0.20525;
-	start.y = 0.64158;
-	start.z = 0.61702;
-
+	start.x = 0.1;
+	start.y = 0.5;
+	start.z = 0.68;
 	end = testpnt();
-	end.x = 0.10525;
-	end.y = 0.64158;
-	end.z = 0.61702;
+	end.x = 0.2574;
+	end.y = 0.6674;
+	end.z = 0.5926;
+	end.qx = 0.0142;
+	end.qy = 0;
+	end.qz = 0;
+	end.qw = 1.0	
+	goal_pos.append(start);
+	
 	
 	bin1 = testpnt();
 	bin1.x = Entry_X_shiftvalue;
@@ -126,45 +134,16 @@ def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z, Test_Depth):
 	bin12.z = Bin_base_z + Level1;
 	bin_values.append(bin12);
 	
-	#print bin_values
-	goal_pos.append(end);
-	#goal_pos.append(start);
-	#goal_pos.append(bin1);
-	
-	for bin_num in range(1,13):
-    	    if (bin_num%3)==2:
-      	      Bin_shift = 0.07;
-    	    else:
-      	      Bin_shift = 0.04;
-	    mid = bin_values[bin_num-1];
-
-	    #pnt1f = copy.deepcopy(mid);
-	    #pnt1f.y = pnt1f.y + Bin_shift;
-	    #goal_pos.append(pnt1f);
-    
-            #pnt1b = copy.deepcopy(pnt1f);
-	    #pnt1b.x = pnt1b.x + Test_Depth;
-	    #goal_pos.append(pnt1b);
-	    #goal_pos.append(pnt1f);
-		
-	    pnt2f = copy.deepcopy(mid);
-	    goal_pos.append(pnt2f);
-	    goal_pos.append(end);
-
-	    #pnt2b = copy.deepcopy(mid);
-	    #pnt2b.x = pnt2b.x + Test_Depth;
-	    #goal_pos.append(pnt2b);
-	    #goal_pos.append(pnt2f);
-
-	    #pnt3f = copy.deepcopy(mid);
-	    #pnt3f.y = pnt3f.y - Bin_shift;
-	    #goal_pos.append(pnt3f);
-	    
-	    #pnt3b = copy.deepcopy(pnt3f);
-	    #pnt3b.x = pnt3b.x + Test_Depth;
-	    #goal_pos.append(pnt3b);
-	    #goal_pos.append(pnt3f);
-	
+	for bin_num in range(1,12):	
+		mid = bin_values[bin_num - 1];
+		pnt2f = copy.deepcopy(mid);
+		pnt2f.qx = 0.5;
+		pnt2f.qy = -0.5;
+		pnt2f.qz = -0.5;
+		pnt2f.qw = 0.5;
+		goal_pos.append(pnt2f);
+		goal_pos.append(end);
+ 
 	return goal_pos;
 
 	
