@@ -1,0 +1,53 @@
+<?xml version="1.0" ?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro"
+    name="sda10f">	
+        <xacro:include filename="$(find motoman_sda10f_support)/urdf/common_torso_macro.xacro" />
+        <xacro:include filename="$(find motoman_sda10f_support)/urdf/arm_macro.xacro" />
+        <xacro:include filename="$(find robotiq_s_model_visualization)/cfg/s-model_articulated_macro.xacro" />
+        
+        <xacro:torso name="torso" prefix="torso_"/>
+        
+        <xacro:motoman_arm name="arm_left" prefix="arm_left_" parent="torso_link_b1" reflect="1">
+            <origin xyz="0.09996 0.0275 0.32214" rpy="1.57 0 0" />
+        </xacro:motoman_arm>      
+        
+        <xacro:motoman_arm name="arm_right" prefix="arm_right_" parent="torso_link_b2" reflect="-1">
+            <origin xyz="0.09996 -0.0275 0.32214" rpy="1.57 0 0" />
+        </xacro:motoman_arm>
+        
+        <xacro:s-model_articulated prefix="hand_left_">
+            <origin xyz="0 0 0" rpy="0 0 0" />
+        </xacro:s-model_articulated>
+        
+        <joint name="hand_left_joint" type="fixed">
+            <origin rpy="-1.57079 0 3.14159" xyz="0 0 -0.06"/>
+                <parent link="arm_left_link_tool0" />
+                <child link="hand_left_palm" />
+            </joint>
+
+        <!-- the shift value in x y z direction is the radius of the ball -->
+        <!-- unit from solid works cannot be trusted, rviz will treat it as default unit, which is meter-->
+        <joint name = "hand_left_collision_sphere" type = "fixed">
+            <origin rpy="0 0 0" xyz="0 0.1 0" />
+            	<parent link="hand_left_palm"/>
+			    <child link="hand_left_collision_sphere_joint"/>
+        </joint>
+
+        <xacro:s-model_articulated prefix="hand_right_">
+            <origin xyz="0 0 0" rpy="0 0 0" />
+        </xacro:s-model_articulated>
+        
+        <joint name="hand_right_joint" type="fixed">
+            <origin rpy="-1.57079 0 0" xyz="0 0 -0.06"/>
+                <parent link="arm_right_link_tool0" />
+                <child link="hand_right_palm" />
+            </joint>
+        <!-- the shift value in x y z direction is the radius of the ball -->
+        <!-- unit from solid works cannot be trusted, rviz will treat it as default unit, which is meter-->
+        <joint name = "hand_right_collision_sphere" type = "fixed">
+			<origin rpy="0 0 0" xyz="0 0.1 0"/>
+            	<parent link="hand_right_palm"/>
+			    <child link="hand_right_collision_sphere_joint"/>
+        </joint>
+            
+</robot>
