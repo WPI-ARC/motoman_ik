@@ -35,8 +35,8 @@ def pos_test(group_handle):
       display_trajectory.trajectory_start = robot.get_current_state()
       display_trajectory.trajectory.append(plan)
       display_trajectory_publisher.publish(display_trajectory);
+      rospy.sleep(5)
       print "============ Waiting while", file_name, " is visualized (again)..."
-      rospy.sleep(2)
       f.close()
 
 if __name__=='__main__':

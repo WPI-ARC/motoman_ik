@@ -2,6 +2,7 @@ import copy;
 
 class testpnt:
 	def __init__(self):
+		self.pnt_property = "init_pos";
 		self.x = 0;
 		self.y = 0;
 		self.z = 0;
@@ -15,20 +16,20 @@ def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z):
 	bin_values = [];
     
     # Gripper dimension
-	GripperLength = 0.2;
+	GripperLength = 0.25;
 	# Bin dimension Unit m
 	Bin_depth = 0.430;
 	Start_Gap = 0.100; 
 	
-	LeftBin_width = 0.240;
+	LeftBin_width = 0.250;
 	MiddleBin_width = 0.300;
-	RightBin_width = 0.240;
+	RightBin_width = 0.250;
 
-	WorkBase_Height = 0.820;
-	BottomLay_Height = 0.230;
-	SecndLayer_Height = 0.230;
-	ThirdLayer_Height = 0.220;
-	TopLayer_Height = 0.260;
+	WorkBase_Height = 0.8350;
+	BottomLay_Height = 0.225;
+	SecndLayer_Height = 0.225;
+	ThirdLayer_Height = 0.227;
+	TopLayer_Height = 0.263;
 		
 	Left_horizontal_ShiftValue = MiddleBin_width/2 + LeftBin_width/2;
 	Right_horizontal_ShiftValue = MiddleBin_width/2 + RightBin_width/2;
@@ -37,6 +38,7 @@ def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z):
 	Level3 = WorkBase_Height + BottomLay_Height + SecndLayer_Height + ThirdLayer_Height/2;
 	Level2 = WorkBase_Height + BottomLay_Height + SecndLayer_Height/2;
 	Level1 = WorkBase_Height + BottomLay_Height/2;
+
 	Entry_X_shiftvalue = Bin_base_x - Bin_depth - Start_Gap - GripperLength;
 
 	# Setting Configuration:
@@ -48,10 +50,11 @@ def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z):
 	#		   Base	
 	
 	start = testpnt();
-	start.x = 0.1;
-	start.y = 0.5;
-	start.z = 0.68;
+	start.x = 0.0;
+	start.y = 0.0;
+	start.z = 0.0;
 	end = testpnt();
+	end.pnt_property = "drop_pos";
 	end.x = 0.2574;
 	end.y = 0.6674;
 	end.z = 0.5926;
@@ -59,7 +62,7 @@ def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z):
 	end.qy = 0;
 	end.qz = 0;
 	end.qw = 1.0	
-	goal_pos.append(start);
+	
 	
 	
 	bin1 = testpnt();
@@ -137,12 +140,15 @@ def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z):
 	for bin_num in range(1,12):	
 		mid = bin_values[bin_num - 1];
 		pnt2f = copy.deepcopy(mid);
+		pnt2f.pnt_property = "test_pos";
 		pnt2f.qx = 0.5;
 		pnt2f.qy = -0.5;
 		pnt2f.qz = -0.5;
 		pnt2f.qw = 0.5;
 		goal_pos.append(pnt2f);
-		goal_pos.append(end);
+		goal_pos.append(end);		
+		# Here I set start point x,y,z = 0,0,0 to be a marker, so robot will use init position assigned in IK_solver as goal position
+		goal_pos.append(start);
  
 	return goal_pos;
 

@@ -30,7 +30,7 @@ def Get_current_state(group):
     
 def find_IK_solution(ik, target, seed, group_name):
     response = ik( GetPositionIKRequest(ik_request = PositionIKRequest( group_name = group_name,
-																		pose_stamped = PoseStamped( header = Header(frame_id=""),
+																		pose_stamped = PoseStamped( header = Header(frame_id="/base_link"),
 																									pose = target),
 																		robot_state = RobotState(joint_state=seed))
 										) )	 
@@ -73,42 +73,23 @@ def Bin_number(count):
 	else:
 		return 12;
 
-def pos_init(left_arm_group_handle, right_arm_group_handle):
-	
-	right_arm_init_pos = geometry_msgs.msg.Pose();	
-	left_arm_init_pos = geometry_msgs.msg.Pose();
-				
-	right_arm_init_pos.orientation.x = -0.50;
-	right_arm_init_pos.orientation.y = -0.50;		
-	right_arm_init_pos.orientation.z = 0.50;
-	right_arm_init_pos.orientation.w = 0.50;	
-	right_arm_init_pos.position.x = 0.1;
-	right_arm_init_pos.position.y = -0.5;
-	right_arm_init_pos.position.z = 0.68;
-	
-	left_arm_init_pos.orientation.x = -0.50;
-	left_arm_init_pos.orientation.y = -0.50;		
-	left_arm_init_pos.orientation.z = 0.50;
-	left_arm_init_pos.orientation.w = 0.50;	
-	left_arm_init_pos.position.x = 0.1;
-	left_arm_init_pos.position.y = 0.5;
-	left_arm_init_pos.position.z = 0.68;	
-	
-	left_arm_group_handle.set_pose_target(left_arm_init_pos);
-	right_arm_group_handle.set_pose_target(right_arm_init_pos);	
-	
-	left_arm_group_handle.go();
-	right_arm_group_handle.go();	
+left_arm_init_joint_value = [0.0, -0.6039528242412353, -1.6264234108138371, 1.0221685537999192, -0.9819728428472593,-0.3411106568963133, -1.675219368757607, 1.2102858416139277];
+right_arm_init_joint_value = [0.0, 2.5794765930828296, 1.3620727097356629, 1.3831275005664025, 0.7845256389316293, -3.057076564078304, -1.7625990915019676, 1.3096307216010097];	
+
+
+def pos_init(left_arm_group_handle, right_arm_group_handle):	
+	left_arm_group_handle.go(left_arm_init_joint_value);
+	right_arm_group_handle.go(right_arm_init_joint_value);	
 	
 		
 def Copy_joint_value(group_name, joint_values):
 	count = 0;
 	Target_joint_value = [];
-	for value in joint_values:	
-		if group_name == "arm_left":
+	for value in joint_values:
+		if group_name == "arm_left_with_torso":
 			if  count < 8:
 				Target_joint_value.append(copy.deepcopy(value));
-		elif group_name == "arm_right":
+		elif group_name == "arm_right_with_torso":
 			if count > 19 and count < 27:
 				Target_joint_value.append(copy.deepcopy(value));			
 		count += 1;
@@ -132,47 +113,51 @@ def pos_test(pose_targets, group_handle, IK_handle, animate_result = False):
 	count = 0;
 	success_number = 0;
 	for pose_target in pose_targets:
-		count += 1;		
-		#print "Start Planning No.", count, "Trajectory";		
-		target = geometry_msgs.msg.Pose();	
-		target.orientation.x = pose_target.qx;
-		target.orientation.y = pose_target.qy;		
-		target.orientation.z = pose_target.qz;
-		target.orientation.w = pose_target.qw;	
-		target.position.x = pose_target.x;
-		target.position.y = pose_target.y;
-		target.position.z = pose_target.z;
+		count += 1;			
 		
-		print target.position;	
-		current_state = Get_current_state(group);
-		result = find_IK_solution(ik, target, current_state, group_handle.get_name());		
-		
-		if result.error_code.val != 1:
-			print "Bin ", Bin_number(count), "test failed!";
+		TargetJointValue = [];	
+			
+		target = geometry_msgs.msg.Pose();
+				
+		if pose_target.pnt_property is "init_pos" :
+			success_number += 1;	
+			TargetJointValue = left_arm_init_joint_value;
 			
 		else:
-			success_number += 1;	
-					
-			TargetJointValue = Copy_joint_value(group_handle.get_name(),result.solution.joint_state.position);
-			
-			if animate_result:
-				
+			target.position.x = pose_target.x;
+			target.position.y = pose_target.y;
+			target.position.z = pose_target.z;
+			target.orientation.x = pose_target.qx;
+			target.orientation.y = pose_target.qy;		
+			target.orientation.z = pose_target.qz;
+			target.orientation.w = pose_target.qw;			
+			print "Target EE position: ", target.position;			
+			current_state = Get_current_state(group);
+			result = find_IK_solution(ik, target, current_state, group_handle.get_name());		
+		
+			if result.error_code.val != 1:
+				print "Bin ", Bin_number(count), "test failed!";
+				continue;			
+			else:
+				success_number += 1;					
+				TargetJointValue = Copy_joint_value(group_handle.get_name(),result.solution.joint_state.position);
+		
+		if animate_result:			
+			if len(TargetJointValue):
 				print ">>>>>>>>>>>>>>> Displaying No.", count, "trajectory >>>>>>>>>>>>>>>"
-				
-				if len(TargetJointValue):
-					group.set_joint_value_target(TargetJointValue);
-					plan = group.plan();
-										
-					# Save trajectory to file			
-					buf = StringIO();
-					plan.serialize(buf);					
-					file_name = "traj_file"+str(count);	
-					print "saving No.",count,"trajectory to file",file_name;					
-					f = open(file_name,"w");
-					f.write(buf.getvalue());
-					f.close();
-									
-					group.go();
+				group.set_start_state_to_current_state();
+				group.set_joint_value_target(TargetJointValue);
+				plan = group.plan();										
+				# Save trajectory to file			
+				buf = StringIO();
+				plan.serialize(buf);					
+				file_name = "Traj/traj_file "+str(count);	
+				print "saving No.",count,"trajectory to file",file_name;					
+				f = open(file_name,"w");
+				f.write(buf.getvalue());
+				f.close();
+				group.go();
+				rospy.sleep(5);
 					
 	if success_number == test_number:
 		print "Available for all position!";
@@ -224,12 +209,18 @@ if __name__=='__main__':
 					  filename = "Model/pod_lowres.stl");
 	
 	print ">>>> Set Init Position >>>>"
-	arm_left_group = moveit_commander.MoveGroupCommander("arm_left");	
+	arm_left_group = moveit_commander.MoveGroupCommander("arm_left_with_torso");	
 	arm_left_group.set_planner_id("RRTstarkConfigDefault");	
-	arm_left_group.allow_replanning(True);	
-	arm_right_group = moveit_commander.MoveGroupCommander("arm_right"); 
+	#arm_left_group.set_planner_id("RRTConnectkConfigDefault");	
+	arm_left_group.allow_replanning(True);
+	arm_left_group.set_planning_time(20);
+
+	arm_right_group = moveit_commander.MoveGroupCommander("arm_right_with_torso"); 
 	arm_right_group.set_planner_id("RRTstarkConfigDefault");	
-	arm_right_group.allow_replanning(True);	
+	#arm_right_group.set_planner_id("RRTConnectkConfigDefault");
+	arm_right_group.allow_replanning(True);
+	arm_right_group.set_planning_time(20);
+
 	pos_init(arm_left_group, arm_right_group);
 	
 	print ">>>> Waiting for service `compute_ik` >>>>";
