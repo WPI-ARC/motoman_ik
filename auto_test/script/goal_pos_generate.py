@@ -2,6 +2,7 @@ import copy;
 
 class testpnt:
 	def __init__(self):
+		self.bin_num = 0;
 		self.pnt_property = "init_pos";
 		self.x = 0;
 		self.y = 0;
@@ -137,18 +138,26 @@ def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z):
 	bin12.z = Bin_base_z + Level1;
 	bin_values.append(bin12);
 	
-	for bin_num in range(1,12):	
+	for bin_num in range(1,13):	
 		mid = bin_values[bin_num - 1];
+		
 		pnt2f = copy.deepcopy(mid);
-		pnt2f.pnt_property = "test_pos";
+		
+		pnt2f.bin_num = bin_num;		
+		pnt2f.pnt_property = "test_pos";		
 		pnt2f.qx = 0.5;
 		pnt2f.qy = -0.5;
 		pnt2f.qz = -0.5;
 		pnt2f.qw = 0.5;
+		
+		start.bin_num = bin_num;
+		end.bin_num = bin_num;
+		goal_pos.append(copy.deepcopy(start));		
 		goal_pos.append(pnt2f);
-		goal_pos.append(end);		
+		goal_pos.append(copy.deepcopy(end));
+		
 		# Here I set start point x,y,z = 0,0,0 to be a marker, so robot will use init position assigned in IK_solver as goal position
-		goal_pos.append(start);
+
  
 	return goal_pos;
 
