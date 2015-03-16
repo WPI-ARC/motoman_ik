@@ -22,18 +22,37 @@ from goal_pos_generate import generate_goal_points
 		
 def pos_test(group_handle):
 
-  for i in range(1,9):
-	if i == 3 or i == 6:
+  for i in range(1,12):
+	if i == 3 or i == 6 or i == 9:
 	  continue
-	file_name = "Traj/bin "+str(i);
+	file_name = "Traj/bin"+str(i)+"/forward";
 	f = open(file_name,"r")
 	plan = RobotTrajectory()
 	buf = f.read()
 	plan.deserialize(buf)
-	previous_traj = moveit_msgs.msg.RobotTrajectory();#previous_traj.trajectory_start = robot.get_current_state()
+	previous_traj = moveit_msgs.msg.RobotTrajectory();
+	#previous_traj.trajectory_start = robot.get_current_state()
 	previous_traj = plan;
-	execute_previous_trajectory(Traj_server,previous_traj); #group_handle.set_start_state_to_current_state();  #group_handle.execute(previous_traj);
 	rospy.sleep(5)
+	execute_previous_trajectory(Traj_server,previous_traj); 
+	#group_handle.set_start_state_to_current_state();  
+	#group_handle.execute(previous_traj);
+
+	print "============ Waiting while", file_name, " is visualized (again)..."
+	f.close()
+	
+	file_name = "Traj/bin"+str(i)+"/goback";
+	f = open(file_name,"r")
+	buf = f.read()
+	plan.deserialize(buf)
+	previous_traj = moveit_msgs.msg.RobotTrajectory();
+	#previous_traj.trajectory_start = robot.get_current_state()
+	previous_traj = plan;
+	rospy.sleep(5)
+	execute_previous_trajectory(Traj_server,previous_traj); 
+	#group_handle.set_start_state_to_current_state();  
+	#group_handle.execute(previous_traj);
+
 	print "============ Waiting while", file_name, " is visualized (again)..."
 	f.close()
       
@@ -90,14 +109,10 @@ if __name__=='__main__':
 	rospy.init_node('IK_Solution_Test', anonymous=True); 
 	scene = moveit_commander.PlanningSceneInterface();	
 	display_trajectory_publisher = rospy.Publisher('/move_group/display_planned_path',
-                                                    moveit_msgs.msg.DisplayTrajectory);
-                                                    
-    
+                                                    moveit_msgs.msg.DisplayTrajectory); 
 	rospy.wait_for_service('execute_kinematic_path');
-	Traj_server = rospy.ServiceProxy("execute_kinematic_path", ExecuteKnownTrajectory);                                             
-	
-	traj_request = ExecuteKnownTrajectoryRequest;
-	
+	Traj_server = rospy.ServiceProxy("execute_kinematic_path", ExecuteKnownTrajectory);
+	traj_request = ExecuteKnownTrajectoryRequest;	
 	scene = moveit_commander.PlanningSceneInterface();	
 	import_bin_model(scene,sys);
 	

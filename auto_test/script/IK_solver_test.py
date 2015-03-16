@@ -41,7 +41,6 @@ def find_IK_solution(ik, target, seed, group_name):
 left_arm_init_joint_value = [-0.5366655919821977, -1.4936620758455732, 0.8819646487984939, -1.2615859366935827, 2.8605303786865734, 1.413918676916994, -1.9754307274567853];
 right_arm_init_joint_value = [2.5794765930828296, 1.3620727097356629, 1.3831275005664025, 0.7845256389316293, -3.057076564078304, -1.7625990915019676, 1.3096307216010097];	
 
-
 def pos_init(left_arm_group_handle, right_arm_group_handle):
 	left_arm_group_handle.set_start_state_to_current_state();	
 	left_arm_group_handle.go(left_arm_init_joint_value);
@@ -50,7 +49,7 @@ def pos_init(left_arm_group_handle, right_arm_group_handle):
 	right_arm_group_handle.go(right_arm_init_joint_value);
 
 def Save_traj(goal_jnt_value,plan):
-	file_name = "Traj/bin "+ str(goal_jnt_value.bin_num);		
+	file_name = "Traj/bin "+ str(goal_jnt_value.bin_num) + goal_jnt_value.traj_property;		
 	print "saving bin.",goal_jnt_value.bin_num,"trajectory to file",file_name;
 	buf = StringIO();
 	plan.serialize(buf);					
