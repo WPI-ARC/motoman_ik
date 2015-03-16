@@ -30,11 +30,11 @@ def pos_test(group_handle):
 	plan = RobotTrajectory()
 	buf = f.read()
 	plan.deserialize(buf)
-	previous_traj = moveit_msgs.msg.RobotTrajectory();
+	#previous_traj = moveit_msgs.msg.RobotTrajectory();
 	#previous_traj.trajectory_start = robot.get_current_state()
-	previous_traj = plan;
+	#previous_traj = plan;
 	rospy.sleep(5)
-	execute_previous_trajectory(Traj_server,previous_traj); 
+	execute_previous_trajectory(Traj_server,plan); 
 	#group_handle.set_start_state_to_current_state();  
 	#group_handle.execute(previous_traj);
 
@@ -45,14 +45,41 @@ def pos_test(group_handle):
 	f = open(file_name,"r")
 	buf = f.read()
 	plan.deserialize(buf)
-	previous_traj = moveit_msgs.msg.RobotTrajectory();
+	#previous_traj = moveit_msgs.msg.RobotTrajectory();
 	#previous_traj.trajectory_start = robot.get_current_state()
-	previous_traj = plan;
+	#previous_traj = plan;
 	rospy.sleep(5)
-	execute_previous_trajectory(Traj_server,previous_traj); 
+	execute_previous_trajectory(Traj_server,plan); 
 	#group_handle.set_start_state_to_current_state();  
 	#group_handle.execute(previous_traj);
-
+	print "============ Waiting while", file_name, " is visualized (again)..."
+	f.close()
+	
+	file_name = "Traj/bin"+str(i)+"/drop";
+	f = open(file_name,"r")
+	buf = f.read()
+	plan.deserialize(buf)
+	#previous_traj = moveit_msgs.msg.RobotTrajectory();
+	#previous_traj.trajectory_start = robot.get_current_state()
+	#previous_traj = plan;
+	rospy.sleep(5)
+	execute_previous_trajectory(Traj_server,plan); 
+	#group_handle.set_start_state_to_current_state();  
+	#group_handle.execute(previous_traj);
+	print "============ Waiting while", file_name, " is visualized (again)..."
+	f.close()
+	
+	file_name = "Traj/bin"+str(i)+"/restart";
+	f = open(file_name,"r")
+	buf = f.read()
+	plan.deserialize(buf)
+	#previous_traj = moveit_msgs.msg.RobotTrajectory();
+	#previous_traj.trajectory_start = robot.get_current_state()
+	#previous_traj = plan;
+	rospy.sleep(5)
+	execute_previous_trajectory(Traj_server,plan); 
+	#group_handle.set_start_state_to_current_state();  
+	#group_handle.execute(previous_traj);
 	print "============ Waiting while", file_name, " is visualized (again)..."
 	f.close()
       
