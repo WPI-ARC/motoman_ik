@@ -1,0 +1,5 @@
+string task
+string bin_num
+---
+bool status
+
