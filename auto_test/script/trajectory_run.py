@@ -3,28 +3,23 @@ import sys
 import copy
 import rospy
 import StringIO
-from std_msgs.msg import String
-from std_msgs.msg import Header
-from std_msgs.msg import Int64
+from std_msgs.msg import String, Header, Int64
 from StringIO import StringIO
 
 import moveit_commander
 import moveit_msgs.msg
-from moveit_msgs.msg import PositionIKRequest, RobotState
+from moveit_msgs.msg import RobotState
 from moveit_msgs.msg import RobotTrajectory
-from moveit_msgs.srv import GetPositionIK, GetPositionIKRequest, ExecuteKnownTrajectory, ExecuteKnownTrajectoryRequest
+from moveit_msgs.srv import ExecuteKnownTrajectory, ExecuteKnownTrajectoryRequest
 
-import geometry_msgs.msg
 from geometry_msgs.msg import PoseStamped, Pose, Point, Quaternion
 
-from sensor_msgs.msg import JointState
-from goal_pos_generate import generate_goal_points
 		
 def pos_test(group_handle):
 
   for i in range(1,12):
 	if i == 3 or i == 6 or i == 9:
-	  continue
+		continue
 	file_name = "Traj/bin"+str(i)+"/forward";
 	f = open(file_name,"r")
 	plan = RobotTrajectory()
@@ -77,7 +72,7 @@ def pos_test(group_handle):
 	#previous_traj.trajectory_start = robot.get_current_state()
 	#previous_traj = plan;
 	rospy.sleep(5)
-	execute_previous_trajectory(Traj_server,plan); 
+	execute_previous_trajectory(Traj_server,plan);
 	#group_handle.set_start_state_to_current_state();  
 	#group_handle.execute(previous_traj);
 	print "============ Waiting while", file_name, " is visualized (again)..."
@@ -137,9 +132,11 @@ if __name__=='__main__':
 	scene = moveit_commander.PlanningSceneInterface();	
 	display_trajectory_publisher = rospy.Publisher('/move_group/display_planned_path',
                                                     moveit_msgs.msg.DisplayTrajectory); 
+	
 	rospy.wait_for_service('execute_kinematic_path');
 	Traj_server = rospy.ServiceProxy("execute_kinematic_path", ExecuteKnownTrajectory);
-	traj_request = ExecuteKnownTrajectoryRequest;	
+	traj_request = ExecuteKnownTrajectoryRequest;
+	
 	scene = moveit_commander.PlanningSceneInterface();	
 	import_bin_model(scene,sys);
 	

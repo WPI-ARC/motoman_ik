@@ -38,7 +38,9 @@ def find_IK_solution(ik, target, seed, group_name):
 
 #left_arm_init_joint_value = [0.0, 2.188960049854576, 0.3449410728966982, 2.6570907870376934, 1.3882585049409712, 1.385429599457956, 1.7069956390569525, -1.4289611729979472];
 
-left_arm_init_joint_value = [-0.5366655919821977, -1.4936620758455732, 0.8819646487984939, -1.2615859366935827, 2.8605303786865734, 1.413918676916994, -1.9754307274567853];
+# Here is drop position
+left_arm_init_joint_value = [2.193856910816974, 1.1630675621113802, 0.852437058039672, 1.113211995331904, 0.8438088567310283, -1.0094747189949542, 0.24438780016629988];
+
 right_arm_init_joint_value = [2.5794765930828296, 1.3620727097356629, 1.3831275005664025, 0.7845256389316293, -3.057076564078304, -1.7625990915019676, 1.3096307216010097];	
 
 def pos_init(left_arm_group_handle, right_arm_group_handle):
@@ -193,10 +195,13 @@ def goal_jnt_val_test(goal_jnt_value_set, group_handle, animate_result = False):
 				count += 1;
 				if count > 100:
 					break;
-			if len(plan.joint_trajectory.points):																		
-				Save_traj(goal_jnt_value,plan);
+			if len(plan.joint_trajectory.points):			
 				print "Executing trajectory",goal_jnt_value.bin_num;
 				group_handle.execute(plan);
+				#for point in plan.joint_trajectory.points:
+				#	point.velocities = [0]*len(point.velocities);
+				#	point.accelerations = [0]*len(point.accelerations);										
+				Save_traj(goal_jnt_value,plan);
 				rospy.sleep(5);
 				success_num += 1;
 			else:
@@ -227,9 +232,11 @@ if __name__=='__main__':
 	  Y_pos = 0;
 	  Z_pos = 0;
 	  
-	Goal_points = generate_goal_points(Bin_base_x = X_pos, Bin_base_y = Y_pos, Bin_base_z = Z_pos);
+	#Goal_points = generate_goal_points(Bin_base_x = X_pos, Bin_base_y = Y_pos, Bin_base_z = Z_pos);
+	#print "Total", len(Goal_points), "targets need to be test";
+	
 	Goal_jnt_val_set = joint_value_goal_setting();
-	print "Total", len(Goal_points), "targets need to be test";
+	print "Total", len(Goal_jnt_val_set), "traj need to be test";
 	
 	bin_pose = PoseStamped();
 	bin_pose.pose.position.x = X_pos;
@@ -246,10 +253,25 @@ if __name__=='__main__':
 					  pose = bin_pose,
 					  filename = "Model/pod_lowres.stl");
 	
+	plane_pos = PoseStamped();
+	plane_pos.pose.position.x = -1.23;
+	plane_pos.pose.position.y = 0.0;
+	plane_pos.pose.position.z = 0.0;
+	plane_pos.pose.orientation.x = 0.5;
+	plane_pos.pose.orientation.y = 0.5;
+	plane_pos.pose.orientation.z = 0.5;
+	plane_pos.pose.orientation.w = 0.5;
+	
+	#scene.attach_mesh(link = "base_link", 
+	#				  name = "AS_WALL", 
+	#				  pose = plane_pos,
+	#				  filename = "Model/pod_lowres.stl");	
+	
+	
 	print ">>>> Set Init Position >>>>"
 	arm_left_group = moveit_commander.MoveGroupCommander("arm_left");	
-	#arm_left_group.set_planner_id("RRTstarkConfigDefault");	
-	arm_left_group.set_planner_id("RRTConnectkConfigDefault");	
+	arm_left_group.set_planner_id("RRTstarkConfigDefault");	
+	#arm_left_group.set_planner_id("RRTConnectkConfigDefault");	
 	#arm_left_group.set_planner_id("RRTkConfigDefault");	
 	arm_left_group.allow_replanning(True);
 	arm_left_group.set_planning_time(15);
