@@ -43,6 +43,12 @@ left_arm_init_joint_value = [2.193856910816974, 1.1630675621113802, 0.8524370580
 
 right_arm_init_joint_value = [2.5794765930828296, 1.3620727097356629, 1.3831275005664025, 0.7845256389316293, -3.057076564078304, -1.7625990915019676, 1.3096307216010097];	
 
+torso_rotation_angle = [-0.7601579016294799, -0.7601579016294799];
+
+def torso_init(torso_group_handle):
+	torso_group_handle.set_start_state_to_current_state();
+	torso_group.go(torso_rotation_angle);
+
 def pos_init(left_arm_group_handle, right_arm_group_handle):
 	left_arm_group_handle.set_start_state_to_current_state();	
 	left_arm_group_handle.go(left_arm_init_joint_value);
@@ -270,20 +276,23 @@ if __name__=='__main__':
 	
 	print ">>>> Set Init Position >>>>"
 	arm_left_group = moveit_commander.MoveGroupCommander("arm_left");	
-	arm_left_group.set_planner_id("RRTstarkConfigDefault");	
-	#arm_left_group.set_planner_id("RRTConnectkConfigDefault");	
+	#arm_left_group.set_planner_id("RRTstarkConfigDefault");	
+	arm_left_group.set_planner_id("RRTConnectkConfigDefault");	
 	#arm_left_group.set_planner_id("RRTkConfigDefault");	
 	arm_left_group.allow_replanning(True);
-	arm_left_group.set_planning_time(15);
+	arm_left_group.set_planning_time(5);
 
 	arm_right_group = moveit_commander.MoveGroupCommander("arm_right"); 
 	#arm_right_group.set_planner_id("RRTstarkConfigDefault");	
 	arm_right_group.set_planner_id("RRTConnectkConfigDefault");
 	#arm_right_group.set_planner_id("RRTkConfigDefault");
 	arm_right_group.allow_replanning(True);
-	arm_right_group.set_planning_time(15);
+	arm_right_group.set_planning_time(5);
 
 	pos_init(arm_left_group, arm_right_group);
+	
+	torso_group = moveit_commander.MoveGroupCommander("torso");
+	torso_init(torso_group);
 	
 	print ">>>> Waiting for service `compute_ik` >>>>";
 	rospy.wait_for_service('compute_ik');

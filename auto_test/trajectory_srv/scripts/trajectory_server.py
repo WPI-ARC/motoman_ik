@@ -27,28 +27,19 @@ def runTrajectory(req):
     
     File_root = "/home/yixiao";
 
-    if req.task == "Init":
-	   file_name = File_root+"/Traj/Init_trajectory";
-		
-    elif req.task == "Forward":
-		file_name = File_root+"/Traj/bin"+req.bin_num+"/forward";
-		
-    elif req.task == "Goback":
-		file_name = File_root+"/Traj/bin"+req.bin_num+"/goback";	
-			
+    if req.task == "Forward":
+        file_name = File_root+"/Traj/bin"+req.bin_num+"/forward";
     elif req.task == "Drop":
-		file_name = File_root+"/Traj/bin"+req.bin_num+"/drop";
+        file_name = File_root+"/Traj/bin"+req.bin_num+"/drop";
+    else :
+        return taskResponse(False);
 
-    elif req.task == "Restart":
-		file_name = File_root+"/Traj/bin"+req.bin_num+"/restart";
-	
     f = open(file_name,"r");
     plan_file = RobotTrajectory();
     buf = f.read();
     plan_file.deserialize(buf);
     
-    plan = copy.deepcopy(plan_file);
-    
+    plan = copy.deepcopy(plan_file);    
   
         
     arm_right_group = moveit_commander.MoveGroupCommander("arm_right"); 
@@ -64,16 +55,16 @@ def runTrajectory(req):
     
     plan.joint_trajectory.points[0] = StartPnt;
     
-    print plan;
+    #print plan;
     
-        
     display_trajectory_publisher = rospy.Publisher('/move_group/display_planned_path',moveit_msgs.msg.DisplayTrajectory)
     display_trajectory = moveit_msgs.msg.DisplayTrajectory();    
     robot = moveit_commander.RobotCommander();
     display_trajectory.trajectory_start = robot.get_current_state()
     display_trajectory.trajectory.append(plan)
     display_trajectory_publisher.publish(display_trajectory);  
-    	
+   
+   
     print "============ Waiting while", file_name, " is visualized (again)..." 
     arm_left_group.execute(plan);
     print "Trajectory ", file_name, " finished!"   
@@ -93,8 +84,8 @@ def pos_init():
 	arm_left_group.set_start_state_to_current_state();
 	arm_left_group.go(left_arm_init_joint_value);
 	
-	#arm_right_group.set_start_state_to_current_state();
-	#arm_right_group.go(right_arm_init_joint_value);
+	arm_right_group.set_start_state_to_current_state();
+	arm_right_group.go(right_arm_init_joint_value);
 
 def Start_server():
 

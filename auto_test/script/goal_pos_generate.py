@@ -203,9 +203,10 @@ def joint_value_goal_setting():
 	drop_pos2.bin_num = 2;
 	goal_joint.append(drop_pos2);
 	
+	# torso_angle = [-0.7600786552701615, -0.7600786552701615]
 	Goal3 = Jnt_goal();
 	Goal3.bin_num = 3;
-	Goal3.jnt_val = [];
+	Goal3.jnt_val = [1.636146928216539, -1.7942154910938195, -1.9579820089934483, -1.065370555588695, -1.1977333227354903, -1.2629020548563172, 2.4920217797426374];
 	goal_joint.append(Goal3);	
 	drop_pos3 = copy.deepcopy(drop_pos);
 	drop_pos3.bin_num = 3;
@@ -227,9 +228,10 @@ def joint_value_goal_setting():
 	drop_pos5.bin_num = 5;
 	goal_joint.append(drop_pos5);
 	
+	# torso_angle = [-0.7600786552701615, -0.7600786552701615]
 	Goal6 = Jnt_goal();
 	Goal6.bin_num = 6;
-	Goal6.jnt_val = [];
+	Goal6.jnt_val = [0.3211845040291911, 1.8722236118989442, 2.04186945586128, 1.7676554743270105, 2.0355538838504685, 1.8938641153978812, -1.5620907149387162];
 	goal_joint.append(Goal6);	
 	drop_pos6 = copy.deepcopy(drop_pos);
 	drop_pos6.bin_num = 6;
@@ -245,15 +247,16 @@ def joint_value_goal_setting():
 	
 	Goal8 = Jnt_goal();
 	Goal8.bin_num = 8;
-	Goal8.jnt_val = [ -0.9916030724162687, 1.8642688181352713, -2.338997191523704, 2.0092924404247343, -2.3411044399524106, 1.3314934519202497, 0.7778852700524742];
+	Goal8.jnt_val = [-0.9916030724162687, 1.8642688181352713, -2.338997191523704, 2.0092924404247343, -2.3411044399524106, 1.3314934519202497, 0.7778852700524742];
 	goal_joint.append(Goal8);	
 	drop_pos8 = copy.deepcopy(drop_pos);
 	drop_pos8.bin_num = 8;
 	goal_joint.append(drop_pos8);
 	
+	# torso_angle = [-0.7600786552701615, -0.7600786552701615]
 	Goal9 = Jnt_goal();
 	Goal9.bin_num = 9;
-	Goal9.jnt_val = [];
+	Goal9.jnt_val = [-0.8463435946810004, 1.7179036202320017, -2.1239910978200562, 1.865937710123034, 1.2017196314404206, -1.5632909661353163, -2.4543389965598013];
 	goal_joint.append(Goal9);	
 	drop_pos9 = copy.deepcopy(drop_pos);
 	drop_pos9.bin_num = 9;
@@ -275,9 +278,10 @@ def joint_value_goal_setting():
 	drop_pos11.bin_num = 11;
 	goal_joint.append(drop_pos11);
 	
+	# torso_angle = [-0.7600786552701615, -0.7600786552701615]
 	Goal12 = Jnt_goal();
 	Goal12.bin_num = 12;
-	Goal12.jnt_val = [];	
+	Goal12.jnt_val = [-0.1366744823232535, 1.8814087405923567, -1.918213729532003, 1.556195610950019, 1.0630905526132743, -1.714707790834795, -2.1028431148646893];	
 	goal_joint.append(Goal12);	
 	drop_pos12 = copy.deepcopy(drop_pos);
 	drop_pos12.bin_num = 12;
