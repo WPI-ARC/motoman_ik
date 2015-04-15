@@ -22,20 +22,19 @@ if __name__=='__main__':
     pose = PoseStamped()
     pose.header.frame_id = "/base_link"
     pose.header.stamp = rospy.Time.now()
-    pose.pose.position.x = -1
+    pose.pose.position.x = -0.505
     pose.pose.position.y = 0
-    pose.pose.position.z = 0
-    pose.pose.orientation.x = 0.5
-    pose.pose.orientation.y = 0.5
-    pose.pose.orientation.z = 0.5
-    pose.pose.orientation.w = 0.5
+    pose.pose.position.z = 1.5
+    pose.pose.orientation.x = 0
+    pose.pose.orientation.y = 0
+    pose.pose.orientation.z = 0
+    pose.pose.orientation.w = 1
 
-    scene.add_plane(
-        name="back_wall",
+    scene.add_box(
+        name="wall",
         pose=pose,
-        normal=(1, 0, 0)
+        size=(0.01, 6, 3)
     )
-
     print "Published lab"
     # rospy.spin()
     moveit_commander.roscpp_shutdown()
