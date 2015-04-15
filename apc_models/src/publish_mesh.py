@@ -11,9 +11,9 @@ from geometry_msgs.msg import PoseStamped
 
 
 if __name__=='__main__':
-    rospy.sleep(10)
-    rospy.init_node('publish_mesh', anonymous=True);
+    #rospy.sleep(10)
     scene = moveit_commander.PlanningSceneInterface();
+    rospy.init_node('publish_mesh', anonymous=True);
 
     name, stl = sys.argv[1], sys.argv[2]
     pose = PoseStamped();
@@ -25,10 +25,15 @@ if __name__=='__main__':
     pose.pose.orientation.z = float(sys.argv[8]);	
     pose.pose.orientation.w = float(sys.argv[9]);
         
-    scene.attach_mesh(link = "base_link", 
-                      name = name, 
-                      pose = pose,
-                      filename = stl);
+    #scene.attach_mesh(link = "base_link", 
+    #                  name = name, 
+    #                  pose = pose,
+    #                  filename = stl);
+    rospy.sleep(10)
+    scene.add_mesh(name = name, 
+                   pose = pose,
+                   filename = stl);
         
+    rospy.sleep(10)
     print "Published "+name
     moveit_commander.roscpp_shutdown()
