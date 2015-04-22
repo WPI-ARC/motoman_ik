@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package>
-  <name>trajectory_srv</name>
+  <name>trajlib</name>
   <version>0.6.1</version>
   <description>Trajectory service package</description>
   <license>BSD</license>
