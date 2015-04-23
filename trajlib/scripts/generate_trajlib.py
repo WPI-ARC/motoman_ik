@@ -52,7 +52,7 @@ def torso_init(torso_group_handle):
 
 def pos_init(left_arm_group_handle, right_arm_group_handle):
     left_arm_group_handle.set_start_state_to_current_state();
-    left_arm_group_handle.go(left_arm_init_joint_value);
+    left_arm_group_handle.go(left_arm_joint_value);
 
     right_arm_group_handle.set_start_state_to_current_state();
     right_arm_group_handle.go(right_arm_init_joint_value);
@@ -310,6 +310,11 @@ if __name__=='__main__':
                       name = "kiva_pod",
                       pose =  bin_pose,
                       filename = os.path.join(os.path.dirname(__file__), "../../apc_models/meshes/pod_lowres.stl"))
+
+    scene.add_box(link = "base_link",
+                      name = "shelf_box",
+                      pose =  bin_pose,
+                      size = (1.77, 0.87, 0.87))
 
     Goal_points = generate_goal_points(Bin_base_x = X_pos, Bin_base_y = Y_pos, Bin_base_z = Z_pos);
     print "Total", len(Goal_points), "target points";
