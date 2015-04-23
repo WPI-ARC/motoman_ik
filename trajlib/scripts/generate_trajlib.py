@@ -1,4 +1,6 @@
+#!/usr/bin/env python
 
+import os
 import sys
 import copy
 import rospy
@@ -43,7 +45,8 @@ left_arm_init_joint_value = [2.193856910816974, 1.1630675621113802, 0.8524370580
 
 right_arm_init_joint_value = [2.5794765930828296, 1.3620727097356629, 1.3831275005664025, 0.7845256389316293, -3.057076564078304, -1.7625990915019676, 1.3096307216010097];	
 
-torso_rotation_angle = [-0.7601579016294799, -0.7601579016294799];
+# torso_rotation_angle = [-0.7601579016294799, -0.7601579016294799];
+torso_rotation_angle = [0, 0];
 
 def torso_init(torso_group_handle):
 	torso_group_handle.set_start_state_to_current_state();
@@ -118,7 +121,7 @@ def plan_trajectory(group_handle,pose_target):
 		Save_traj(pose_target,plan);
 		print "Executing trajectory";
 		group_handle.go();
-		rospy.sleep(5);
+		# rospy.sleep(5);
 		return 0;
 	else:
 		print "Planning failed!";
@@ -234,7 +237,7 @@ if __name__=='__main__':
 	  Z_pos = float(sys.argv[3]);	  
 	else:
 	  print "No distance assigned, using default parameters"
-	  X_pos = 1.35;
+	  X_pos = 1.2;
 	  Y_pos = 0;
 	  Z_pos = 0;
 	  
@@ -254,10 +257,10 @@ if __name__=='__main__':
 	bin_pose.pose.orientation.z = 0.5;	
 	bin_pose.pose.orientation.w = 0.5;
 		
-	scene.attach_mesh(link = "base_link", 
-					  name = "kiva_pod", 
-					  pose = bin_pose,
-					  filename = "Model/pod_lowres.stl");
+	# scene.attach_mesh(link = "base_link", 
+	# 				  name = "kiva_pod", 
+	# 				  pose = bin_pose,
+	# 				  filename = os.path.join(os.path.dirname(__file__), "../../apc_models/meshes/pod_lowres.stl"))
 	
 	plane_pos = PoseStamped();
 	plane_pos.pose.position.x = -1.23;
@@ -277,17 +280,17 @@ if __name__=='__main__':
 	print ">>>> Set Init Position >>>>"
 	arm_left_group = moveit_commander.MoveGroupCommander("arm_left");	
 	#arm_left_group.set_planner_id("RRTstarkConfigDefault");	
-	arm_left_group.set_planner_id("RRTConnectkConfigDefault");	
+	arm_left_group.set_planner_id("RRTstarkConfigDefault");	
 	#arm_left_group.set_planner_id("RRTkConfigDefault");	
 	arm_left_group.allow_replanning(True);
-	arm_left_group.set_planning_time(5);
+	arm_left_group.set_planning_time(20);
 
 	arm_right_group = moveit_commander.MoveGroupCommander("arm_right"); 
 	#arm_right_group.set_planner_id("RRTstarkConfigDefault");	
-	arm_right_group.set_planner_id("RRTConnectkConfigDefault");
+	arm_right_group.set_planner_id("RRTstarkConfigDefault");
 	#arm_right_group.set_planner_id("RRTkConfigDefault");
 	arm_right_group.allow_replanning(True);
-	arm_right_group.set_planning_time(5);
+	arm_right_group.set_planning_time(10);
 
 	pos_init(arm_left_group, arm_right_group);
 	
@@ -300,7 +303,7 @@ if __name__=='__main__':
 					  
 	print ">>>> Start Testing >>>>"
 	#pos_test(Goal_points,arm_left_group, ik, animate_result = True)
-	goal_jnt_val_test(Goal_jnt_val_set,arm_left_group, animate_result = True)
+	goal_jnt_val_test(Goal_jnt_val_set, arm_left_group, animate_result=True)
 	
 	print "**** Test End ****"
 	moveit_commander.roscpp_shutdown()
