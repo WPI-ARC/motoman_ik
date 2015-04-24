@@ -134,7 +134,7 @@ def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z):
     # 0.53906; -0.54087358; 1.2154
     binH = testpnt();
     binH.bin_num = chr(ord("A")+7);
-    binH.x = Entry_X_shiftvalue + Modulate;
+    binH.x = Entry_X_shiftvalue + 2*Modulate;
     binH.y = Bin_base_y;
     binH.z = Bin_base_z + Level2;
     binH.qx = 0.0;
