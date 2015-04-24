@@ -28,7 +28,7 @@ from goal_pos_generate import left_arm_init_joint_value, right_arm_init_joint_va
 # Function
 from goal_pos_generate import generate_goal_points, generate_left_arm_seed_state, generate_key_joint_state;
 
-planning_time = 20;
+planning_time = 45;
 
 default_Bin_X = 1.29;
 default_Bin_Y = 0;
