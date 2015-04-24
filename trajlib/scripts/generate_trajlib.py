@@ -28,6 +28,10 @@ from goal_pos_generate import left_arm_init_joint_value, right_arm_init_joint_va
 # Function
 from goal_pos_generate import generate_goal_points, generate_left_arm_seed_state, generate_key_joint_state;
 
+default_Bin_X = 1.29;
+default_Bin_Y = 0;
+default_Bin_Z = 0;
+
 def Get_current_state(group):
     return	JointState(
         name=group.get_joints()[:7],
@@ -231,36 +235,13 @@ if __name__=='__main__':
       Y_pos = float(sys.argv[2]);
       Z_pos = float(sys.argv[3]);
     else:
-      X_pos = 1.29;
-      Y_pos = 0;
-      Z_pos = 0;
+      X_pos = default_Bin_X;
+      Y_pos = default_Bin_Y;
+      Z_pos = default_Bin_Z;
       print "No distance assigned, using default parameters: ",X_pos, Y_pos, Z_pos;
 
-<<<<<<< HEAD
     Add_bin_model(X_pos, Y_pos, Z_pos);
-    # Generate 
-=======
-    bin_pose = PoseStamped();
-    bin_pose.pose.position.x = X_pos;
-    bin_pose.pose.position.y = Y_pos;
-    bin_pose.pose.position.z = Z_pos;
-    bin_pose.pose.orientation.x = 0.5;
-    bin_pose.pose.orientation.y = 0.5;
-    bin_pose.pose.orientation.z = 0.5;
-    bin_pose.pose.orientation.w = 0.5;
 
-    scene = moveit_commander.PlanningSceneInterface();
-    scene.attach_mesh(link = "base_link",
-                      name = "kiva_pod",
-                      pose =  bin_pose,
-                      filename = os.path.join(os.path.dirname(__file__), "../../apc_models/meshes/pod_lowres.stl"))
-
-    scene.add_box(link = "base_link",
-                      name = "shelf_box",
-                      pose =  bin_pose,
-                      size = (1.77, 0.87, 0.87))
-
->>>>>>> origin/test_version
     Goal_points = generate_goal_points(Bin_base_x = X_pos, Bin_base_y = Y_pos, Bin_base_z = Z_pos);
     print "Total", len(Goal_points), "target points";
 

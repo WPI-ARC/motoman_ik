@@ -17,6 +17,7 @@ from moveit_msgs.srv import ExecuteKnownTrajectory, ExecuteKnownTrajectoryReques
 from trajectory_msgs.msg import JointTrajectoryPoint
 
 from goal_pos_generate import left_arm_init_joint_value,right_arm_init_joint_value;
+from generate_trajlib import Add_bin_model, default_Bin_X, default_Bin_Y, default_Bin_Z;
 
 def runTrajectory(req):
 
@@ -90,7 +91,8 @@ def Start_server():
 
     global Traj_server;    
     rospy.init_node('trajectory_service');
-    s = rospy.Service('trajectory_execute', task, runTrajectory);	 
+    s = rospy.Service('trajectory_execute', task, runTrajectory);	
+    Add_bin_model(default_Bin_X, default_Bin_Y, default_Bin_Z); 
     pos_init();
 	
     rospy.spin()
