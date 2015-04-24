@@ -6,6 +6,13 @@ right_arm_init_joint_value = [2.5794765930828296, 1.3620727097356629, 1.38312750
 # torso_rotation_angle = [-0.7601579016294799, -0.7601579016294799];
 torso_init_rotation_angle = [0, 0];
 
+default_orientation_x = -0.54
+default_orientation_y = 0.45
+default_orientation_z = 0.55
+default_orientation_w = -0.43
+
+Custom_defined_distance = 0.08
+
 class testpnt:
     def __init__(self):
         self.bin_num = chr(ord('S'));
@@ -24,7 +31,7 @@ def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z):
     GripperLength = 0.2;
     # Bin dimension Unit m
     Bin_depth = 0.4;
-    Modulate = 0.05;
+    Modulate = 0.01;
 
     LeftBin_width = 0.250;
     MiddleBin_width = 0.300;
@@ -44,7 +51,7 @@ def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z):
     Level2 = WorkBase_Height + BottomLay_Height + SecndLayer_Height/2;
     Level1 = WorkBase_Height + BottomLay_Height/2;
 
-    Entry_X_shiftvalue = Bin_base_x - Bin_depth - GripperLength - Modulate;
+    Entry_X_shiftvalue = Bin_base_x - Bin_depth - GripperLength - 5*Modulate - Custom_defined_distance;
 
     goal_pos = [];
     # Setting Configuration:
@@ -59,10 +66,10 @@ def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z):
     binA.x = Entry_X_shiftvalue;
     binA.y = Bin_base_y + Left_horizontal_ShiftValue;
     binA.z = Bin_base_z + Level4;
-    binA.qx = 0.0;
-    binA.qy = 0.0;
-    binA.qz = -0.707;
-    binA.qw = 0.707;
+    binA.qx = default_orientation_x;
+    binA.qy = default_orientation_y;
+    binA.qz = default_orientation_z;
+    binA.qw = default_orientation_w;
     goal_pos.append(binA);
 
     binB = testpnt();
@@ -70,10 +77,10 @@ def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z):
     binB.x = Entry_X_shiftvalue;
     binB.y = Bin_base_y;
     binB.z = Bin_base_z + Level4;
-    binB.qx = 0.0;
-    binB.qy = 0.0;
-    binB.qz = -0.707;
-    binB.qw = 0.707;
+    binB.qx = default_orientation_x;
+    binB.qy = default_orientation_y;
+    binB.qz = default_orientation_z;
+    binB.qw = default_orientation_w;
     goal_pos.append(binB);
 
     binC = testpnt();
@@ -81,10 +88,10 @@ def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z):
     binC.x = Entry_X_shiftvalue;
     binC.y = Bin_base_y - Right_horizontal_ShiftValue;
     binC.z = Bin_base_z + Level4;
-    binC.qx = 0.0;
-    binC.qy = 0.0;
-    binC.qz = -0.707;
-    binC.qw = 0.707;
+    binC.qx = default_orientation_x;
+    binC.qy = default_orientation_y;
+    binC.qz = default_orientation_z;
+    binC.qw = default_orientation_w;
     #goal_pos.append(binC);
 
     binD = testpnt();
@@ -92,10 +99,10 @@ def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z):
     binD.x = Entry_X_shiftvalue;
     binD.y = Bin_base_y + Left_horizontal_ShiftValue;
     binD.z = Bin_base_z + Level3;
-    binD.qx = 0.0;
-    binD.qy = 0.0;
-    binD.qz = -0.707;
-    binD.qw = 0.707;
+    binD.qx = default_orientation_x;
+    binD.qy = default_orientation_y;
+    binD.qz = default_orientation_z;
+    binD.qw = default_orientation_w;
     goal_pos.append(binD);
 
     binE = testpnt();
@@ -103,10 +110,10 @@ def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z):
     binE.x = Entry_X_shiftvalue;
     binE.y = Bin_base_y;
     binE.z = Bin_base_z + Level3;
-    binE.qx = 0.0;
-    binE.qy = 0.0;
-    binE.qz = -0.707;
-    binE.qw = 0.707;
+    binE.qx = default_orientation_x;
+    binE.qy = default_orientation_y;
+    binE.qz = default_orientation_z;
+    binE.qw = default_orientation_w;
     goal_pos.append(binE);
 
     binF = testpnt();
@@ -114,33 +121,33 @@ def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z):
     binF.x = Entry_X_shiftvalue;
     binF.y = Bin_base_y - Right_horizontal_ShiftValue;
     binF.z = Bin_base_z + Level3;
-    binF.qx = 0.0;
-    binF.qy = 0.0;
-    binF.qz = -0.707;
+    binF.qx = default_orientation_x;
+    binF.qy = default_orientation_y;
+    binF.qz = default_orientation_z;
     binF.qw = 0.707;
     #goal_pos.append(binF);
 
     binG = testpnt();
     binG.bin_num = chr(ord("A")+6);
-    binG.x = Entry_X_shiftvalue + Modulate;
+    binG.x = Entry_X_shiftvalue + Custom_defined_distance;
     binG.y = Bin_base_y + Left_horizontal_ShiftValue;
     binG.z = Bin_base_z + Level2;
-    binG.qx = 0.0;
-    binG.qy = 0.0;
-    binG.qz = -0.707;
-    binG.qw = 0.707;
+    binG.qx = default_orientation_x;
+    binG.qy = default_orientation_y;
+    binG.qz = default_orientation_z;
+    binG.qw = default_orientation_w;
     goal_pos.append(binG);
 
     # 0.53906; -0.54087358; 1.2154
     binH = testpnt();
     binH.bin_num = chr(ord("A")+7);
-    binH.x = Entry_X_shiftvalue + 2*Modulate;
+    binH.x = Entry_X_shiftvalue + Modulate;
     binH.y = Bin_base_y;
     binH.z = Bin_base_z + Level2;
-    binH.qx = 0.0;
-    binH.qy = 0.0;
-    binH.qz = -0.707;
-    binH.qw = 0.707;
+    binH.qx = default_orientation_x;
+    binH.qy = default_orientation_y;
+    binH.qz = default_orientation_z;
+    binH.qw = default_orientation_w;
     goal_pos.append(binH);
 
     #print "Bin H, Pos_X: ",binH.x," Pos_Y:", binH.y, "Pos_Z:", binH.z;
@@ -149,32 +156,32 @@ def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z):
     binI.x = Entry_X_shiftvalue;
     binI.y = Bin_base_y - Right_horizontal_ShiftValue;
     binI.z = Bin_base_z + Level2;
-    binI.qx = 0.0;
-    binI.qy = 0.0;
-    binI.qz = -0.707;
-    binI.qw = 0.707;
+    binI.qx = default_orientation_x;
+    binI.qy = default_orientation_y;
+    binI.qz = default_orientation_z;
+    binI.qw = default_orientation_w;
     #goal_pos.append(binI);
 
     binJ = testpnt();
     binJ.bin_num = chr(ord("A")+9);
-    binJ.x = Entry_X_shiftvalue;
+    binJ.x = Entry_X_shiftvalue - 3*Modulate;
     binJ.y = Bin_base_y + Left_horizontal_ShiftValue;
     binJ.z = Bin_base_z + Level1;
-    binJ.qx = 0.0;
-    binJ.qy = 0.0;
-    binJ.qz = -0.707;
-    binJ.qw = 0.707;
+    binJ.qx = default_orientation_x;
+    binJ.qy = default_orientation_y;
+    binJ.qz = default_orientation_z;
+    binJ.qw = default_orientation_w;
     goal_pos.append(binJ);
 
     binK = testpnt();
     binK.bin_num = chr(ord("A")+10);
-    binK.x = Entry_X_shiftvalue;
+    binK.x = Entry_X_shiftvalue - 2*Custom_defined_distance;
     binK.y = Bin_base_y;
     binK.z = Bin_base_z + Level1;
-    binK.qx = 0.0;
-    binK.qy = 0.0;
-    binK.qz = -0.707;
-    binK.qw = 0.707;
+    binK.qx = default_orientation_x;
+    binK.qy = default_orientation_y;
+    binK.qz = default_orientation_z;
+    binK.qw = default_orientation_w;
     goal_pos.append(binK);
 
     binL = testpnt();
@@ -182,10 +189,10 @@ def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z):
     binL.x = Entry_X_shiftvalue;
     binL.y = Bin_base_y - Right_horizontal_ShiftValue;
     binL.z = Bin_base_z + Level1;
-    binL.qx = 0.0;
-    binL.qy = 0.0;
-    binL.qz = -0.707;
-    binL.qw = 0.707;
+    binL.qx = default_orientation_x;
+    binL.qy = default_orientation_y;
+    binL.qz = default_orientation_z;
+    binL.qw = default_orientation_w;
     #goal_pos.append(binL);
 
     return goal_pos;

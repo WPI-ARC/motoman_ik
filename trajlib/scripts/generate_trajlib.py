@@ -28,6 +28,8 @@ from goal_pos_generate import left_arm_init_joint_value, right_arm_init_joint_va
 # Function
 from goal_pos_generate import generate_goal_points, generate_left_arm_seed_state, generate_key_joint_state;
 
+planning_time = 20;
+
 default_Bin_X = 1.29;
 default_Bin_Y = 0;
 default_Bin_Z = 0;
@@ -56,7 +58,7 @@ def torso_init(torso_group_handle):
 
 def arm_init(left_arm_group_handle, right_arm_group_handle):
     left_arm_group_handle.set_start_state_to_current_state();
-    left_arm_group_handle.go(left_arm_joint_value);
+    left_arm_group_handle.go(left_arm_init_joint_value);
 
     right_arm_group_handle.set_start_state_to_current_state();
     right_arm_group_handle.go(right_arm_init_joint_value);
@@ -210,8 +212,6 @@ if __name__=='__main__':
     print ">>>> Initializing... >>>>"
     moveit_commander.roscpp_initialize(sys.argv);
     rospy.init_node('IK_Solution_Test', anonymous=True);
-    
-    planning_time = 60;
     
     arm_left_group = moveit_commander.MoveGroupCommander("arm_left");
     arm_left_group.set_planner_id("RRTstarkConfigDefault");
