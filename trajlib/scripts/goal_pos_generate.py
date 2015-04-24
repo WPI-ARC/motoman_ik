@@ -1,5 +1,11 @@
 import copy;
 
+# All using the same Init Pos now
+left_arm_init_joint_value = [2.193856910816974, 1.1630675621113802, 0.852437058039672, 1.113211995331904, 0.8438088567310283, -1.0094747189949542, 0.24438780016629988];
+right_arm_init_joint_value = [2.5794765930828296, 1.3620727097356629, 1.3831275005664025, 0.7845256389316293, -3.057076564078304, -1.7625990915019676, 1.3096307216010097];
+# torso_rotation_angle = [-0.7601579016294799, -0.7601579016294799];
+torso_init_rotation_angle = [0, 0];
+
 class testpnt:
     def __init__(self):
         self.bin_num = chr(ord('S'));
@@ -18,7 +24,7 @@ def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z):
     GripperLength = 0.2;
     # Bin dimension Unit m
     Bin_depth = 0.4;
-    Start_Gap = 0.100;
+    Modulate = 0.05;
 
     LeftBin_width = 0.250;
     MiddleBin_width = 0.300;
@@ -38,7 +44,7 @@ def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z):
     Level2 = WorkBase_Height + BottomLay_Height + SecndLayer_Height/2;
     Level1 = WorkBase_Height + BottomLay_Height/2;
 
-    Entry_X_shiftvalue = Bin_base_x - Bin_depth - GripperLength;
+    Entry_X_shiftvalue = Bin_base_x - Bin_depth - GripperLength - Modulate;
 
     goal_pos = [];
     # Setting Configuration:
@@ -53,10 +59,10 @@ def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z):
     binA.x = Entry_X_shiftvalue;
     binA.y = Bin_base_y + Left_horizontal_ShiftValue;
     binA.z = Bin_base_z + Level4;
-    binA.qx = 0.5;
-    binA.qy = -0.5;
-    binA.qz = -0.5;
-    binA.qw = 0.5;
+    binA.qx = 0.0;
+    binA.qy = 0.0;
+    binA.qz = -0.707;
+    binA.qw = 0.707;
     goal_pos.append(binA);
 
     binB = testpnt();
@@ -64,10 +70,10 @@ def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z):
     binB.x = Entry_X_shiftvalue;
     binB.y = Bin_base_y;
     binB.z = Bin_base_z + Level4;
-    binB.qx = 0.5;
-    binB.qy = -0.5;
-    binB.qz = -0.5;
-    binB.qw = 0.5;
+    binB.qx = 0.0;
+    binB.qy = 0.0;
+    binB.qz = -0.707;
+    binB.qw = 0.707;
     goal_pos.append(binB);
 
     binC = testpnt();
@@ -75,10 +81,10 @@ def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z):
     binC.x = Entry_X_shiftvalue;
     binC.y = Bin_base_y - Right_horizontal_ShiftValue;
     binC.z = Bin_base_z + Level4;
-    binC.qx = 0.5;
-    binC.qy = -0.5;
-    binC.qz = -0.5;
-    binC.qw = 0.5;
+    binC.qx = 0.0;
+    binC.qy = 0.0;
+    binC.qz = -0.707;
+    binC.qw = 0.707;
     #goal_pos.append(binC);
 
     binD = testpnt();
@@ -86,10 +92,10 @@ def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z):
     binD.x = Entry_X_shiftvalue;
     binD.y = Bin_base_y + Left_horizontal_ShiftValue;
     binD.z = Bin_base_z + Level3;
-    binD.qx = 0.5;
-    binD.qy = -0.5;
-    binD.qz = -0.5;
-    binD.qw = 0.5;
+    binD.qx = 0.0;
+    binD.qy = 0.0;
+    binD.qz = -0.707;
+    binD.qw = 0.707;
     goal_pos.append(binD);
 
     binE = testpnt();
@@ -97,10 +103,10 @@ def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z):
     binE.x = Entry_X_shiftvalue;
     binE.y = Bin_base_y;
     binE.z = Bin_base_z + Level3;
-    binE.qx = 0.5;
-    binE.qy = -0.5;
-    binE.qz = -0.5;
-    binE.qw = 0.5;
+    binE.qx = 0.0;
+    binE.qy = 0.0;
+    binE.qz = -0.707;
+    binE.qw = 0.707;
     goal_pos.append(binE);
 
     binF = testpnt();
@@ -108,33 +114,33 @@ def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z):
     binF.x = Entry_X_shiftvalue;
     binF.y = Bin_base_y - Right_horizontal_ShiftValue;
     binF.z = Bin_base_z + Level3;
-    binF.qx = 0.5;
-    binF.qy = -0.5;
-    binF.qz = -0.5;
-    binF.qw = 0.5;
+    binF.qx = 0.0;
+    binF.qy = 0.0;
+    binF.qz = -0.707;
+    binF.qw = 0.707;
     #goal_pos.append(binF);
 
     binG = testpnt();
     binG.bin_num = chr(ord("A")+6);
-    binG.x = Entry_X_shiftvalue;
+    binG.x = Entry_X_shiftvalue + Modulate;
     binG.y = Bin_base_y + Left_horizontal_ShiftValue;
     binG.z = Bin_base_z + Level2;
-    binG.qx = 0.5;
-    binG.qy = -0.5;
-    binG.qz = -0.5;
-    binG.qw = 0.5;
+    binG.qx = 0.0;
+    binG.qy = 0.0;
+    binG.qz = -0.707;
+    binG.qw = 0.707;
     goal_pos.append(binG);
 
-    # 0.63906; 0.0087358; 1.2154
+    # 0.53906; -0.54087358; 1.2154
     binH = testpnt();
     binH.bin_num = chr(ord("A")+7);
-    binH.x = Entry_X_shiftvalue;
+    binH.x = Entry_X_shiftvalue + Modulate;
     binH.y = Bin_base_y;
     binH.z = Bin_base_z + Level2;
-    binH.qx = 0.5;
-    binH.qy = -0.5;
-    binH.qz = -0.5;
-    binH.qw = 0.5;
+    binH.qx = 0.0;
+    binH.qy = 0.0;
+    binH.qz = -0.707;
+    binH.qw = 0.707;
     goal_pos.append(binH);
 
     #print "Bin H, Pos_X: ",binH.x," Pos_Y:", binH.y, "Pos_Z:", binH.z;
@@ -143,10 +149,10 @@ def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z):
     binI.x = Entry_X_shiftvalue;
     binI.y = Bin_base_y - Right_horizontal_ShiftValue;
     binI.z = Bin_base_z + Level2;
-    binI.qx = 0.5;
-    binI.qy = -0.5;
-    binI.qz = -0.5;
-    binI.qw = 0.5;
+    binI.qx = 0.0;
+    binI.qy = 0.0;
+    binI.qz = -0.707;
+    binI.qw = 0.707;
     #goal_pos.append(binI);
 
     binJ = testpnt();
@@ -154,10 +160,10 @@ def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z):
     binJ.x = Entry_X_shiftvalue;
     binJ.y = Bin_base_y + Left_horizontal_ShiftValue;
     binJ.z = Bin_base_z + Level1;
-    binJ.qx = 0.5;
-    binJ.qy = -0.5;
-    binJ.qz = -0.5;
-    binJ.qw = 0.5;
+    binJ.qx = 0.0;
+    binJ.qy = 0.0;
+    binJ.qz = -0.707;
+    binJ.qw = 0.707;
     goal_pos.append(binJ);
 
     binK = testpnt();
@@ -165,10 +171,10 @@ def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z):
     binK.x = Entry_X_shiftvalue;
     binK.y = Bin_base_y;
     binK.z = Bin_base_z + Level1;
-    binK.qx = 0.5;
-    binK.qy = -0.5;
-    binK.qz = -0.5;
-    binK.qw = 0.5;
+    binK.qx = 0.0;
+    binK.qy = 0.0;
+    binK.qz = -0.707;
+    binK.qw = 0.707;
     goal_pos.append(binK);
 
     binL = testpnt();
@@ -176,10 +182,10 @@ def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z):
     binL.x = Entry_X_shiftvalue;
     binL.y = Bin_base_y - Right_horizontal_ShiftValue;
     binL.z = Bin_base_z + Level1;
-    binL.qx = 0.5;
-    binL.qy = -0.5;
-    binL.qz = -0.5;
-    binL.qw = 0.5;
+    binL.qx = 0.0;
+    binL.qy = 0.0;
+    binL.qz = -0.707;
+    binL.qw = 0.707;
     #goal_pos.append(binL);
 
     return goal_pos;
@@ -196,8 +202,8 @@ def generate_left_arm_seed_state():
 
     Goal1 = Jnt_state_goal();
     Goal1.bin_num = chr(ord('A'));
-    #Goal1.jnt_val = [ 1.2946151012717504, -1.363382168130896, -1.6617924058050058, -1.695796534346829, -0.779241703517125, -0.23640897614768297, 1.8915492395648426];
-    Goal1.jnt_val = [-1.5442344278755054, 1.0688537862129166, 0.9596692482080396, -1.40904847193336, 1.7674462114208445, 0.6331007451974301, -1.031333210948469];
+    Goal1.jnt_val = [ 1.2946151012717504, -1.363382168130896, -1.6617924058050058, -1.695796534346829, -0.779241703517125, -0.23640897614768297, 1.8915492395648426];
+    #Goal1.jnt_val = [-1.5442344278755054, 1.0688537862129166, 0.9596692482080396, -1.40904847193336, 1.7674462114208445, 0.6331007451974301, -1.031333210948469];
     seed_state.append(Goal1);
 
     Goal2 = Jnt_state_goal();
@@ -261,25 +267,25 @@ def generate_left_arm_seed_state():
 
     return seed_state;
 
-def generate_key_joint_state():
+def generate_key_joint_state(group_name):
 	key_joint_state_set = [];
 	
-	# Here is drop position
-	#left_arm_init_joint_value = [2.193856910816974, 1.1630675621113802, 0.852437058039672, 1.113211995331904, 0.8438088567310283, -1.0094747189949542, 0.24438780016629988];
-	#right_arm_init_joint_value = [2.5794765930828296, 1.3620727097356629, 1.3831275005664025, 0.7845256389316293, -3.057076564078304, -1.7625990915019676, 1.3096307216010097];
-
-    Init_pos = Jnt_state_goal();
-    Init_pos.bin_num = "Start";
-    Init_pos.pos_property = "init_pos";
-    Init_pos.jnt_val = [2.193856910816974, 1.1630675621113802, 0.852437058039672, 1.113211995331904, 0.8438088567310283, -1.0094747189949542, 0.24438780016629988];
-    key_joint_state_set.append(Init_pos);
-
-    drop_pos = Jnt_state_goal();
-    drop_pos.bin_num = "End";
-    drop_pos.pos_property = "drop_pos";
-    #drop_pos.jnt_val = [-1.466582785572278, -1.0355327918495896, 1.5012144903767006, 0.840856815273938, -0.6411362241516871, -1.0226092747529063, -0.35127936003281013];
-    drop_pos.jnt_val = [2.193856910816974, 1.1630675621113802, 0.852437058039672, 1.113211995331904, 0.8438088567310283, -1.0094747189949542, 0.24438780016629988];
-    key_joint_state_set.append(drop_pos);
+	Init_pos = Jnt_state_goal();
+	Init_pos.bin_num = "Start";
+	Init_pos.pos_property = "init_pos";
+	drop_pos = Jnt_state_goal();
+	drop_pos.bin_num = "End";
+	drop_pos.pos_property = "drop_pos";
+	
+	if group_name == "arm_left":
+		Init_pos.jnt_val = left_arm_init_joint_value;
+		drop_pos.jnt_val = left_arm_init_joint_value;
+	elif group_name == "arm_right":
+		Init_pos.jnt_val = right_arm_init_joint_value;
+		drop_pos.jnt_val = right_arm_init_joint_value;
+		
+	key_joint_state_set.append(Init_pos);
+	key_joint_state_set.append(drop_pos);
 	
 	return key_joint_state_set;
 
