@@ -1,5 +1,6 @@
 string task
 string bin_num
+string using_torso
 ---
 bool status
 

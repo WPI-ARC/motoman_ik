@@ -24,25 +24,29 @@ from sensor_msgs.msg import JointState
 # Structure
 from goal_pos_generate import Jnt_state_goal;
 # Variable
-from goal_pos_generate import left_arm_init_joint_value, right_arm_init_joint_value, torso_init_rotation_angle;
+from goal_pos_generate import left_arm_init_joint_value, right_arm_init_joint_value, torso_init_rotation_angle, left_arm_torso_init_joint_value, right_arm_torso_init_joint_value;
 # Function
-from goal_pos_generate import generate_goal_points, generate_left_arm_seed_state, generate_key_joint_state;
+from goal_pos_generate import generate_goal_points, generate_left_arm_seed_state, generate_left_arm_torso_seed_state, generate_key_joint_state;
 
 planning_time = 45;
+using_torso = True;
 
 default_Bin_X = 1.29;
 default_Bin_Y = 0;
 default_Bin_Z = 0;
 
 def Get_current_state(group):
-    return	JointState(
-        name=group.get_joints()[:7],
-        position=group.get_current_joint_values(),
-    );
+	joint_number = 7;
+	if using_torso:
+		joint_number = 8;
+	current_state = JointState(name=group.get_joints()[:joint_number], position=group.get_current_joint_values());
+	return	current_state
 
 def Generate_joint_state_msg(group_handle,jnt_value):
-    return JointState( name = group_handle.get_joints()[:7],
-                       position = jnt_value);
+	joint_number = 7;
+	if using_torso:
+		joint_number = 8;
+	return JointState( name = group_handle.get_joints()[:joint_number], position = jnt_value);
 
 def find_IK_solution(ik, target, seed, group_name):
     response = ik( GetPositionIKRequest(ik_request = PositionIKRequest( group_name = group_name,
@@ -54,14 +58,15 @@ def find_IK_solution(ik, target, seed, group_name):
 
 def torso_init(torso_group_handle):
     torso_group_handle.set_start_state_to_current_state();
-    torso_group.go(torso_rotation_angle);
+    torso_group.go(torso_init_rotation_angle);
 
 def arm_init(left_arm_group_handle, right_arm_group_handle):
-    left_arm_group_handle.set_start_state_to_current_state();
-    left_arm_group_handle.go(left_arm_init_joint_value);
-
-    right_arm_group_handle.set_start_state_to_current_state();
-    right_arm_group_handle.go(right_arm_init_joint_value);
+	if using_torso:
+		left_arm_group_handle.go(left_arm_torso_init_joint_value);
+		right_arm_group_handle.go(right_arm_torso_init_joint_value);
+	else:
+		left_arm_group_handle.go(left_arm_init_joint_value);
+		right_arm_group_handle.go(right_arm_init_joint_value);
 
 def Save_traj(file_name,plan):
 	
@@ -77,8 +82,14 @@ def Copy_joint_value(group_name, joint_values):
     Target_joint_value = [];
     if group_name == "arm_left":
         Target_joint_value = joint_values[1:8];
+    elif group_name == "arm_left_torso":
+        Target_joint_value = joint_values[0:8];
+		
     elif group_name == "arm_right":
         Target_joint_value = joint_values[20:27];
+    elif group_name == "arm_right_torso":
+        Target_joint_value = joint_values[19:27];
+        
     return Target_joint_value;
 
 def Add_bin_model(bin_x, bin_y, bin_z):
@@ -168,7 +179,6 @@ def Generate_traj_for_key2pnt(key_config_set, goal_config_set, group_handle):
 		
 		current_goal_config = goal_config_set[num];		
 		# Plan from start to the bin
-		#group_handle.set_start_state_to_current_state();
 		goal_jnt_value_msg = Generate_joint_state_msg(group_handle,current_goal_config.jnt_val)
 		group_handle.set_joint_value_target(goal_jnt_value_msg);
 		plan = group_handle.plan();
@@ -209,63 +219,72 @@ def Generate_traj_for_pnt2pnt(goal_config_set, group_handle):
 	
 if __name__=='__main__':
   try:
-    print ">>>> Initializing... >>>>"
-    moveit_commander.roscpp_initialize(sys.argv);
-    rospy.init_node('IK_Solution_Test', anonymous=True);
+	print ">>>> Initializing... >>>>"
+	moveit_commander.roscpp_initialize(sys.argv);
+	rospy.init_node('IK_Solution_Test', anonymous=True);
+
+	if using_torso:
+		arm_left_group = moveit_commander.MoveGroupCommander("arm_left_torso");
+		arm_right_group = moveit_commander.MoveGroupCommander("arm_right_torso");
+	else:
+		arm_left_group = moveit_commander.MoveGroupCommander("arm_left");
+		arm_right_group = moveit_commander.MoveGroupCommander("arm_right");		
+		torso_group = moveit_commander.MoveGroupCommander("torso");
+		torso_init(torso_group);  
+		
+	arm_left_group.set_planner_id("RRTstarkConfigDefault");
+	arm_left_group.allow_replanning(True);
+	arm_right_group.set_planner_id("RRTstarkConfigDefault");
+	arm_right_group.allow_replanning(True);
+
+	arm_init(arm_left_group, arm_right_group);
+	arm_left_group.set_planning_time(planning_time);
+	arm_right_group.set_planning_time(planning_time);
+
+	print ">>>> Import Bin model, Generate Testing Targets >>>>"
+	if len(sys.argv)>1:
+		X_pos = float(sys.argv[1]);
+		Y_pos = float(sys.argv[2]);
+		Z_pos = float(sys.argv[3]);
+	else:
+		X_pos = default_Bin_X;
+		Y_pos = default_Bin_Y;
+		Z_pos = default_Bin_Z;
+		print "No distance assigned, using default parameters: ",X_pos, Y_pos, Z_pos;
+
+	Add_bin_model(X_pos, Y_pos, Z_pos);
+
+	print ">>>> Waiting for service `compute_ik` >>>>";
+	rospy.wait_for_service('compute_ik');
+	ik = rospy.ServiceProxy("compute_ik", GetPositionIK);
     
-    arm_left_group = moveit_commander.MoveGroupCommander("arm_left");
-    arm_left_group.set_planner_id("RRTstarkConfigDefault");
-    arm_left_group.allow_replanning(True);
+	print "Generating Target Ponits..."
+	Goal_points = generate_goal_points(Bin_base_x = X_pos, Bin_base_y = Y_pos, Bin_base_z = Z_pos, using_torso = using_torso);
+	print "Total", len(Goal_points), "target points";
+
+	print "Generating Seed States..."
+	if using_torso:
+		left_arm_seed_states = generate_left_arm_torso_seed_state();
+	else:
+		left_arm_seed_states = generate_left_arm_seed_state();
+		
+	print "Total", len(left_arm_seed_states), "seed states";
+
     
-    arm_right_group = moveit_commander.MoveGroupCommander("arm_right");
-    arm_right_group.set_planner_id("RRTstarkConfigDefault");
-    arm_right_group.allow_replanning(True);
+	print "Updating Joint Configurations..."
+	left_arm_config_set = generate_configurationSet(Goal_points, left_arm_seed_states, ik, arm_left_group);
     
-    arm_init(arm_left_group, arm_right_group);
+	print "Updating Key Joint States..."
+	key_joint_state = generate_key_joint_state(arm_left_group.get_name());
 
-    arm_left_group.set_planning_time(planning_time);
-    arm_right_group.set_planning_time(planning_time);
+	print ">>>> Start Generating trajectory library (from KeyPos <--> Bin)>>>>";
+	Generate_traj_for_key2pnt(key_joint_state, left_arm_config_set, arm_left_group);
 
-    #torso_group = moveit_commander.MoveGroupCommander("torso");
-    #torso_init(torso_group);
+	print ">>>> Start Generating trajectory library (from Bin <--> Bin)>>>>";
+	Generate_traj_for_pnt2pnt(left_arm_config_set,arm_left_group);
 
-    print ">>>> Import Bin model, Generate Testing Targets >>>>"
-    if len(sys.argv)>1:
-      X_pos = float(sys.argv[1]);
-      Y_pos = float(sys.argv[2]);
-      Z_pos = float(sys.argv[3]);
-    else:
-      X_pos = default_Bin_X;
-      Y_pos = default_Bin_Y;
-      Z_pos = default_Bin_Z;
-      print "No distance assigned, using default parameters: ",X_pos, Y_pos, Z_pos;
-
-    Add_bin_model(X_pos, Y_pos, Z_pos);
-
-    Goal_points = generate_goal_points(Bin_base_x = X_pos, Bin_base_y = Y_pos, Bin_base_z = Z_pos);
-    print "Total", len(Goal_points), "target points";
-
-    left_arm_seed_states = generate_left_arm_seed_state();
-    print "Total", len(left_arm_seed_states), "seed states";
-
-    print ">>>> Waiting for service `compute_ik` >>>>";
-    rospy.wait_for_service('compute_ik');
-    ik = rospy.ServiceProxy("compute_ik", GetPositionIK);
-    
-    print "Updating Joint Configurations..."
-    left_arm_config_set = generate_configurationSet(Goal_points, left_arm_seed_states, ik, arm_left_group);
-    
-    print "Updating Key Joint States..."
-    key_joint_state = generate_key_joint_state(arm_left_group.get_name());
-
-    print ">>>> Start Generating trajectory library (from KeyPos <--> Bin)>>>>";
-    Generate_traj_for_key2pnt(key_joint_state, left_arm_config_set, arm_left_group);
-
-    print ">>>> Start Generating trajectory library (from Bin <--> Bin)>>>>";
-    Generate_traj_for_pnt2pnt(left_arm_config_set,arm_left_group);
-
-    print "**** Test End ****"
-    moveit_commander.roscpp_shutdown()
+	print "**** Test End ****"
+	moveit_commander.roscpp_shutdown()
 
   except rospy.ROSInterruptException:
     pass
