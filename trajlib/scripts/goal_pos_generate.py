@@ -11,10 +11,14 @@ right_arm_torso_init_joint_value = [0.0, 2.5794765930828296, 1.3620727097356629,
 # torso_rotation_angle = [-0.7601579016294799, -0.7601579016294799];
 torso_init_rotation_angle = [0, 0];
 
-default_orientation_x = -0.54
-default_orientation_y = 0.45
-default_orientation_z = 0.55
-default_orientation_w = -0.43
+# default_orientation_x = -0.54
+# default_orientation_y = 0.45
+# default_orientation_z = 0.55
+# default_orientation_w = -0.43
+default_orientation_x =  -0.484592
+default_orientation_y = 0.384602
+default_orientation_z = 0.615524
+default_orientation_w = -0.488244
 
 Custom_defined_distance = 0.08
 

@@ -2,5 +2,5 @@ string task
 string bin_num
 string using_torso
 ---
+moveit_msgs/RobotTrajectory plan
 bool status
-

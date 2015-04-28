@@ -31,7 +31,7 @@ from goal_pos_generate import generate_goal_points, generate_left_arm_seed_state
 planning_time = 45;
 using_torso = True;
 
-default_Bin_X = 1.29;
+default_Bin_X = 1.25;
 default_Bin_Y = 0;
 default_Bin_Z = 0;
 
@@ -106,9 +106,9 @@ def Add_bin_model(bin_x, bin_y, bin_z):
 						name = "kiva_pod",
 						pose =  bin_pose,
 						filename = os.path.join(os.path.dirname(__file__), "../../apc_models/meshes/pod_lowres.stl"))
-	scene.add_box(name = "shelf_box",
-					pose =  bin_pose,
-					size = (0.87, 0.87, 1.87));
+	# scene.add_box(name = "shelf_box",
+	# 			  pose =  bin_pose,
+	# 			  size = (0.87, 0.87, 1.87));
     
 def generate_configurationSet(target_pnt_set, seed_config_set,ik_handle,group_handle):
 
