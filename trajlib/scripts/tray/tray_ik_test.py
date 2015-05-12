@@ -1,8 +1,10 @@
+
 import os
 import sys
 import copy
 import rospy
 import StringIO
+
 from std_msgs.msg import String
 from std_msgs.msg import Header
 from std_msgs.msg import Int64
@@ -21,34 +23,25 @@ from sensor_msgs.msg import JointState
 from visualization_msgs.msg import Marker
 from visualization_msgs.msg import MarkerArray
 
-from tray_goal_pos_generator import generate_frontface_positions, seed_state_generator;
+from tray_goal_pos_generator import generate_frontface_positions, seed_state_generator, arm_right_init, arm_left_init;
 
-left_arm_init_joint_value = [0.0, 2.193856910816974, 1.1630675621113802, 0.852437058039672, 1.113211995331904, 0.8438088567310283, -1.0094747189949542, 0.24438780016629988];
-right_arm_init_joint_value = [0.0, -0.6780398983363556, -0.5308824828312927, 2.2170419900015057, -1.1857632029913627, -1.9757495514037438, 1.6338609473054155, -1.522792050619864];	
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../scripts"));
+from bin_loader import Load_Bin_model, X_pos, Y_pos, Z_pos;
+default_Bin_X = X_pos;
+default_Bin_Y = Y_pos;
+default_Bin_Z = Z_pos;
 
-def Add_bin_model(bin_x, bin_y, bin_z):
-	bin_pose = PoseStamped();
-	bin_pose.pose.position.x = bin_x;
-	bin_pose.pose.position.y = bin_y;
-	bin_pose.pose.position.z = bin_z;
-	bin_pose.pose.orientation.x = 0.5;
-	bin_pose.pose.orientation.y = 0.5;
-	bin_pose.pose.orientation.z = 0.5;
-	bin_pose.pose.orientation.w = 0.5;
-	scene = moveit_commander.PlanningSceneInterface();
-	scene.attach_mesh( link =  "base_link",
-						name = "kiva_pod",
-						pose =  bin_pose,
-						filename = os.path.join(os.path.dirname(__file__), "../../../apc_models/meshes/pod_lowres.stl"))
+left_arm_init_joint_value = arm_left_init;
+right_arm_init_joint_value = arm_right_init;	
+
+Planning_time = 60;
+
 
 topic = '/visualization_marker';
 marker_publisher = rospy.Publisher(topic, Marker);
-def Draw_GoalPnt(goal_pnts):
-	
+def Draw_GoalPnt(goal_pnts):	
 	goal_positions = MarkerArray();
-	
-	marker = Marker();
-	
+	marker = Marker();	
 	for goal in goal_pnts:
 		marker.header.frame_id = "base_link";
 		marker.type = marker.SPHERE_LIST;
@@ -75,37 +68,35 @@ def Generate_joint_state_msg(group_handle,jnt_value):
 	joint_number = len(group_handle.get_joints());
 	return JointState(name = group_handle.get_joints()[:joint_number], position = jnt_value);
 
-
 def Get_current_state(group):
 	return	JointState(name = group.get_joints()[0:8], 
 					   position=group.get_current_joint_values());
     
 def find_IK_solution(ik, target, seed, group_name):
-    response = ik( GetPositionIKRequest(ik_request = PositionIKRequest( group_name = group_name,
-																		pose_stamped = PoseStamped( header = Header(frame_id="/base_link"),
+    response = ik(GetPositionIKRequest(ik_request = PositionIKRequest( group_name = group_name,
+																		pose_stamped = PoseStamped( header = Header(frame_id="base_link"),
 																									pose = target),
 																		robot_state = RobotState(joint_state=seed))
 										) )
     return response
 
 def pos_init(left_arm_group_handle, right_arm_group_handle):
-	
 	right_arm_group_handle.set_start_state_to_current_state();	
 	right_arm_group_handle.go(right_arm_init_joint_value);
 	
 	left_arm_group_handle.set_start_state_to_current_state();	
 	left_arm_group_handle.go(left_arm_init_joint_value);
-	
 
-def Save_traj(goal_jnt_value,plan):
-	file_name = "Traj/bin "+ str(goal_jnt_value.bin_num) + goal_jnt_value.traj_property;		
-	print "saving bin.",goal_jnt_value.bin_num,"trajectory to file",file_name;
+def Save_traj(plan):			
+	folder_name = os.path.join(os.path.dirname(__file__), "../../trajectories/bin") + "E";
+	file_name = folder_name + "/"+ "Pick";	
+	#print "saving bin.",goal_jnt_value.bin_num,"trajectory to file",file_name;
 	buf = StringIO();
 	plan.serialize(buf);				
 	f = open(file_name,"w");
 	f.write(buf.getvalue());
-	f.close();		
-	
+	f.close();
+
 def Generate_configuration_set(group_handle, pose_target_set, ik_handle):
 	
 	Arm_config_set = [];
@@ -136,10 +127,11 @@ def Generate_configuration_set(group_handle, pose_target_set, ik_handle):
 		
 		else:
 			ik_solution = Copy_joint_value(group_handle.get_name(),result.solution.joint_state.position);
-			print "IK solution for Bin", pose_target.bin_num,"is:"
-			print ik_solution
-			Arm_config_set.append(ik_solution);
-			
+			#print "IK solution for Bin", pose_target.bin_num,"is:"
+			#print ik_solution;
+			#Arm_config_set.append(ik_solution);
+			Arm_config_set.append(seed_state.jnt_val);
+	
 	return Arm_config_set;
 
 def Copy_joint_value(group_name, joint_values):
@@ -177,18 +169,19 @@ def pos_test(group_handle, IK_handle):
 		
 		print "Total ",len(config_set),"Ik solutions were found";
 		
-		print ">>>> Generating Trajectories... >>>>";
-		
-		for config in config_set:
+		for count in range(0,len(config_set)):
+			config = config_set[count];
+			print ">>>> Planning Trajectory..."
 			group_handle.set_start_state_to_current_state();
 			group_handle.set_joint_value_target(config);
 			plan = group_handle.plan();
+			
 			# Plan is valid, Save trajectory to file
 			if len(plan.joint_trajectory.points):																		
-				#Save_traj(pose_target,plan);
-				print "Executing trajectory";
+				Save_traj(plan);
+				print "Executing trajectory...";
 				group_handle.execute(plan);
-				rospy.sleep(5);			
+				rospy.sleep(5);
 				# Go back to init_pos
 				group_handle.set_start_state_to_current_state();
 				group_handle.set_joint_value_target(right_arm_init_joint_value);
@@ -198,7 +191,6 @@ def pos_test(group_handle, IK_handle):
 				rospy.sleep(5);
 			else:
 				print "Planning failed!";
-		
 				
 	else:
 	  print "No target Assigned, Exit!";
@@ -218,29 +210,26 @@ if __name__=='__main__':
 	if len(sys.argv)>1:
 	  X_pos = float(sys.argv[1]);
 	  Y_pos = float(sys.argv[2]);
-	  Z_pos = float(sys.argv[3]);	  
+	  Z_pos = float(sys.argv[3]);  
 	else:
-	  X_pos = 1.40;
-	  Y_pos = 0.08;
-	  Z_pos = 0;
-	  print "No distance assigned, using default parameters: X = ",X_pos," Y = ",Y_pos, " Z = ", Z_pos;
-	Add_bin_model(X_pos, Y_pos, Z_pos);
-	
+	  print "No distance assigned, using default parameters: X = ",default_Bin_X," Y = ",default_Bin_Y, " Z = ", default_Bin_Z;
+	Load_Bin_model(default_Bin_X, default_Bin_Y, default_Bin_Z);
 	
 	print ">>>> Set Init Position >>>>"
 	arm_left_group = moveit_commander.MoveGroupCommander("arm_left_torso");	
 	arm_left_group.set_planner_id("RRTstarkConfigDefault");
 	arm_left_group.allow_replanning(True);
 	arm_left_group.set_goal_tolerance(0.001);
-	arm_left_group.set_planning_time(5);
 
 	arm_right_group = moveit_commander.MoveGroupCommander("arm_right_torso"); 
 	arm_right_group.set_planner_id("RRTstarkConfigDefault");
 	arm_right_group.set_goal_tolerance(0.001);
 	arm_right_group.allow_replanning(True);
-	arm_right_group.set_planning_time(5);
 	
 	pos_init(arm_left_group, arm_right_group);
+	
+	arm_left_group.set_planning_time(Planning_time);
+	arm_right_group.set_planning_time(Planning_time);
 	
 	print ">>>> Waiting for service `compute_ik` >>>>";
 	rospy.wait_for_service('compute_ik');

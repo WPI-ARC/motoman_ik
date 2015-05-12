@@ -1,3 +1,4 @@
+
 import os;
 import sys;
 import copy;
@@ -20,7 +21,7 @@ roll = -180;
 yaw = 90;
 
 # Modulate
-Safe_distance = 0.3;
+Safe_distance = 0.25;
 Z_shift_value = 0.07;
 
 # Gripper dimension
