@@ -30,7 +30,7 @@ from gripper_goal_pos_generate import left_arm_init_joint_value, right_arm_init_
 # Function
 from gripper_goal_pos_generate import generate_goal_points, generate_left_arm_seed_state, generate_left_arm_torso_seed_state, generate_key_joint_state;
 
-planning_time = 30;
+planning_time = 60;
 using_torso = True;
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../scripts"))
