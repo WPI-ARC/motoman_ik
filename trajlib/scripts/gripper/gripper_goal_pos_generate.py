@@ -162,7 +162,7 @@ def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z, using_torso = False
 
     binH = testpnt();
     binH.bin_num = "H";
-    binH.x = Entry_X_shiftvalue + 2*Modulate;
+    binH.x = Entry_X_shiftvalue + Modulate;
     binH.y = Bin_base_y;
     binH.z = Bin_base_z + Level2;
     binH.qx = default_orientation_x;

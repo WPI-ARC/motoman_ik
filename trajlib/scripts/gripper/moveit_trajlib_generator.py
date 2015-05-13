@@ -30,7 +30,7 @@ from gripper_goal_pos_generate import left_arm_init_joint_value, right_arm_init_
 # Function
 from gripper_goal_pos_generate import generate_goal_points, generate_left_arm_seed_state, generate_left_arm_torso_seed_state, generate_key_joint_state;
 
-planning_time = 240;
+planning_time = 180;
 using_torso = True;
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../scripts"))
@@ -97,6 +97,10 @@ def torso_init(torso_group_handle):
 	torso_group.go(torso_init_rotation_angle);
 
 def arm_init(left_arm_group_handle, right_arm_group_handle):
+	
+	arm_left_group.set_planner_id("RRTConnectkConfigDefault");
+	arm_right_group.set_planner_id("RRTConnectkConfigDefault");
+	
 	if using_torso:
 		left_arm_group_handle.go(left_arm_torso_init_joint_value);
 		right_arm_group_handle.go(right_arm_torso_init_joint_value);
@@ -196,7 +200,7 @@ def Generate_traj_for_key2pnt(key_config_set, goal_config_set, group_handle):
 	group_handle.go();
 	for num in range(0,len(goal_config_set)):
 		
-		num = 8;
+		num = 7;
 		
 		print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>";
 		print "Planning from start pos to bin",chr(ord('A')+num);
@@ -253,12 +257,12 @@ if __name__=='__main__':
 		torso_group = moveit_commander.MoveGroupCommander("torso");
 		torso_init(torso_group);  
 		
-	arm_left_group.set_planner_id("RRTstarkConfigDefault");
-	arm_left_group.allow_replanning(True);
-	arm_right_group.set_planner_id("RRTstarkConfigDefault");
-	arm_right_group.allow_replanning(True);
 
+	arm_left_group.allow_replanning(True);
+	arm_right_group.allow_replanning(True);
 	arm_init(arm_left_group, arm_right_group);
+	arm_left_group.set_planner_id("RRTstarkConfigDefault");
+	arm_right_group.set_planner_id("RRTstarkConfigDefault");
 	arm_left_group.set_planning_time(planning_time);
 	arm_right_group.set_planning_time(planning_time);
 
