@@ -30,23 +30,35 @@ def runTrajectory(req):
     print "---------------------------------"
     
     # Get the trajectory
-    if req.using_torso == "y":
-        file_root = os.path.join(os.path.dirname(__file__), "../trajectories/Torso/bin"+req.bin_num);
-    else:
-        file_root = os.path.join(os.path.dirname(__file__), "../trajectories/bin"+req.bin_num);
+    file_root = os.path.join(os.path.dirname(__file__), "../trajectories");
 
     traj_execute_group = moveit_commander.MoveGroupCommander("arm_right_torso");
-    if req.task == "Forward":
-        file_name = file_root+"/forward";
+    
+    if req.task == "use_tray":
+		file_name = file_root + "/left_arm_side";
+		traj_execute_group = moveit_commander.MoveGroupCommander("arm_left_torso");
+    elif req.task == "use_gripper":
+		file_name = file_root + "/left_arm_drop";
+		traj_execute_group = moveit_commander.MoveGroupCommander("arm_left_torso");
+        
+    elif req.task == "Forward":
+        file_name = file_root+"/bin" + req.bin_num +"/forward";
         traj_execute_group = moveit_commander.MoveGroupCommander("arm_left_torso");
     elif req.task == "Drop":
-        file_name = file_root+"/drop";
+        file_name = file_root+"/bin" + req.bin_num+"/drop";
         traj_execute_group = moveit_commander.MoveGroupCommander("arm_left_torso");
+        
     elif req.task == "Pick":
-        file_name = file_root+"/Pick";
+        file_name = file_root+"/bin" + req.bin_num+"/Pick";
         traj_execute_group = moveit_commander.MoveGroupCommander("arm_right_torso");
     elif req.task == "Dump":
-        file_name = file_root+"/Dump";
+        file_name = file_root+"/bin" + req.bin_num+"/Dump";
+        traj_execute_group = moveit_commander.MoveGroupCommander("arm_right_torso");
+    elif req.task == "Lift":
+        file_name = file_root+"/bin" + req.bin_num+"/Lift";
+        traj_execute_group = moveit_commander.MoveGroupCommander("arm_right_torso");
+    elif req.task == "Home":
+        file_name = file_root+"/bin" + req.bin_num+"/Home";
         traj_execute_group = moveit_commander.MoveGroupCommander("arm_right_torso");
         
     else :

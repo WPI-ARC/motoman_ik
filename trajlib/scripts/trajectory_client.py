@@ -34,7 +34,13 @@ if __name__ == '__main__':
 	elif len(sys.argv) == 3:
 		current_task = sys.argv[1];
 		bin_num = sys.argv[2];
+		using_torso = "n";
+	
+	elif len(sys.argv) == 2:
+		current_task = sys.argv[1];
+		bin_num = "";
 		using_torso = "n";	
+
 	else:
 		current_task = "Forward";
 		bin_num = "A";
