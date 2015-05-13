@@ -4,20 +4,28 @@ from trajlib.srv import *
 
 import sys
 import rospy
+import moveit_msgs.msg
+import moveit_commander
 
-def request_a_traj(current_task,bin_num, using_torso):
+from moveit_msgs.msg import DisplayTrajectory
+
+def request_a_traj(current_task, bin_num, using_torso):
 	
-	rospy.wait_for_service('trajectory_execute');
-	
-	try:		
-		traj_server = rospy.ServiceProxy('trajectory_execute', task);
+	try:
+		
+		traj_server = rospy.ServiceProxy('trajectory_display', GetTrajectory);
+		
 		resp1 = traj_server(current_task, bin_num, using_torso);
 		return taskResponse(True);
-		
+
 	except rospy.ServiceException, e:
 		print "Service call failed: %s" %e;
 
 if __name__ == '__main__':
+	
+	rospy.init_node('trajectory_client');
+	rospy.wait_for_service('trajectory_display');
+	
 	if len(sys.argv) == 4:
 		current_task = sys.argv[1];
 		bin_num = sys.argv[2];
@@ -26,8 +34,7 @@ if __name__ == '__main__':
 	elif len(sys.argv) == 3:
 		current_task = sys.argv[1];
 		bin_num = sys.argv[2];
-		using_torso = "n";
-		
+		using_torso = "n";	
 	else:
 		current_task = "Forward";
 		bin_num = "A";
