@@ -34,7 +34,7 @@ default_Bin_Z = Z_pos;
 left_arm_init_joint_value = arm_left_init;
 right_arm_init_joint_value = arm_right_init;	
 
-Planning_time = 60;
+Planning_time = 90;
 
 
 topic = '/visualization_marker';
@@ -88,7 +88,7 @@ def pos_init(left_arm_group_handle, right_arm_group_handle):
 	left_arm_group_handle.go(left_arm_init_joint_value);
 
 def Save_traj(plan):			
-	folder_name = os.path.join(os.path.dirname(__file__), "../../trajectories/bin") + "E";
+	folder_name = os.path.join(os.path.dirname(__file__), "../../trajectories/bin") + "L";
 	file_name = folder_name + "/"+ "Pick";	
 	#print "saving bin.",goal_jnt_value.bin_num,"trajectory to file",file_name;
 	buf = StringIO();
@@ -163,7 +163,7 @@ def pos_test(group_handle, IK_handle):
 	  
 		print "Total target number:",len(Goal_point_set);
 		success_number = 0;
-			
+
 		print ">>>> Generating IK solutions... >>>>"
 		config_set = Generate_configuration_set(group_handle, Goal_point_set, IK_handle)
 		
@@ -191,7 +191,7 @@ def pos_test(group_handle, IK_handle):
 				rospy.sleep(5);
 			else:
 				print "Planning failed!";
-				
+
 	else:
 	  print "No target Assigned, Exit!";
 	  return False;
