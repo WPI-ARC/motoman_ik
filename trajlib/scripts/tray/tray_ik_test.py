@@ -88,7 +88,7 @@ def pos_init(left_arm_group_handle, right_arm_group_handle):
 	left_arm_group_handle.go(left_arm_init_joint_value);
 
 def Save_traj(plan):			
-	folder_name = os.path.join(os.path.dirname(__file__), "../../trajectories/bin") + "L";
+	folder_name = os.path.join(os.path.dirname(__file__), "../../trajectories/bin") + "I";
 	file_name = folder_name + "/"+ "Pick";	
 	#print "saving bin.",goal_jnt_value.bin_num,"trajectory to file",file_name;
 	buf = StringIO();
