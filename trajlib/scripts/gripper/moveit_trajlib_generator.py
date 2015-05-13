@@ -30,7 +30,7 @@ from gripper_goal_pos_generate import left_arm_init_joint_value, right_arm_init_
 # Function
 from gripper_goal_pos_generate import generate_goal_points, generate_left_arm_seed_state, generate_left_arm_torso_seed_state, generate_key_joint_state;
 
-planning_time = 30;
+planning_time = 240;
 using_torso = True;
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../scripts"))
@@ -131,9 +131,10 @@ def Copy_joint_value(group_name, joint_values):
 def generate_configurationSet(target_pnt_set, seed_config_set,ik_handle,group_handle):
 
     arm_config = [];
-    if len(target_pnt_set) != len(seed_config_set):
-        print "WARNNING!! target_pnt number is not equal to seed_config_set number, Exit!";
-        return arm_config;
+    
+    #if len(target_pnt_set) != len(seed_config_set):
+    #    print "WARNNING!! target_pnt number is not equal to seed_config_set number, Exit!";
+    #    return arm_config;
 
     for num in range(0,len(target_pnt_set)):
 
@@ -194,6 +195,9 @@ def Generate_traj_for_key2pnt(key_config_set, goal_config_set, group_handle):
 	group_handle.set_joint_value_target(start_pos.jnt_val);
 	group_handle.go();
 	for num in range(0,len(goal_config_set)):
+		
+		num = 8;
+		
 		print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>";
 		print "Planning from start pos to bin",chr(ord('A')+num);
 		current_goal_config = goal_config_set[num];		

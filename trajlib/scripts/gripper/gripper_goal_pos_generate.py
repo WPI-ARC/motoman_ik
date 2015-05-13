@@ -21,8 +21,10 @@ roll = -180;
 yaw = 90;
 
 # Modulate
-Safe_distance = 0.25;
-Z_shift_value = 0.07;
+
+# 0.28 for bin A B C D E F G J K L
+Safe_distance = 0.23;
+Z_shift_value = 0.04;
 
 # Gripper dimension
 GripperLength = 0.2;
@@ -160,7 +162,7 @@ def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z, using_torso = False
 
     binH = testpnt();
     binH.bin_num = "H";
-    binH.x = Entry_X_shiftvalue + 3*Modulate;
+    binH.x = Entry_X_shiftvalue + 2*Modulate;
     binH.y = Bin_base_y;
     binH.z = Bin_base_z + Level2;
     binH.qx = default_orientation_x;
@@ -169,7 +171,6 @@ def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z, using_torso = False
     binH.qw = default_orientation_w;
     goal_pos.append(binH);
 
-    #print "Bin H, Pos_X: ",binH.x," Pos_Y:", binH.y, "Pos_Z:", binH.z;
     binI = testpnt();
     binI.bin_num = "I";
     binI.x = Entry_X_shiftvalue;
@@ -215,7 +216,7 @@ def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z, using_torso = False
     binL.qw = default_orientation_w;
     if using_torso:
 		goal_pos.append(binL);
-
+    
     return goal_pos;
 
 class Jnt_state_goal:

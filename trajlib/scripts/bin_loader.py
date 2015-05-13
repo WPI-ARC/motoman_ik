@@ -7,7 +7,7 @@ from geometry_msgs.msg import PoseStamped
 
 X_pos = 1.39;
 Y_pos = 0.08;
-Z_pos = 0;
+Z_pos = -0.05;
 
 
 def Load_Bin_model(bin_x, bin_y, bin_z):
@@ -48,22 +48,24 @@ def Load_Bin_model(bin_x, bin_y, bin_z):
 		scene.add_box(
 			name="bin",
 			pose=box_pose,
-			size=(0.86, 0.8, 1.78));
-			
-		pose = PoseStamped()
-		pose.header.frame_id = "/base_link"
-		pose.header.stamp = rospy.Time.now()
-		pose.pose.position.x = -0.505
-		pose.pose.position.y = 0
-		pose.pose.position.z = 1.5
-		pose.pose.orientation.x = 0
-		pose.pose.orientation.y = 0
-		pose.pose.orientation.z = 0
-		pose.pose.orientation.w = 1
-		scene.add_box(
-			name="wall",
-			pose=pose,
-			size=(0.01, 6, 3));
+			size=(0.96, 0.96, 2.5));
+		
+		drop_size_x = 0.381;
+		drop_size_y = 0.635;
+		drop_size_z = 0.533;
+		dropbin_pose = PoseStamped()
+		dropbin_pose.header.frame_id = "/base_link"
+		dropbin_pose.header.stamp = rospy.Time.now()
+		dropbin_pose.pose.position.x = 0.67
+		dropbin_pose.pose.position.y = 0.2
+		dropbin_pose.pose.position.z = drop_size_z/2
+		dropbin_pose.pose.orientation.x = 0
+		dropbin_pose.pose.orientation.y = 0
+		dropbin_pose.pose.orientation.z = 0
+		dropbin_pose.pose.orientation.w = 1
+		scene.add_box( name="dropbox",
+					   pose=dropbin_pose,
+					   size=(drop_size_x, drop_size_y, drop_size_z));
         
 	except rospy.ROSInterruptException:
 		pass
