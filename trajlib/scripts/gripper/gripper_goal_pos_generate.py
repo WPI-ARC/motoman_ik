@@ -23,7 +23,10 @@ yaw = 90;
 # Modulate
 
 # 0.28 for bin A B C D E F G J K L
-Safe_distance = 0.23;
+#Safe_distance = 0.23;
+ 
+X_shifts = 0.4;
+Step_back = 0.1;
 Z_shift_value = 0.04;
 
 # Gripper dimension
@@ -65,13 +68,14 @@ class testpnt:
         
 def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z, using_torso = False):
 
-    
     default_orientation_w =  -0.488244
     default_orientation_x =  -0.484592
     default_orientation_y =  0.384602
     default_orientation_z =  0.615524
 
-    Entry_X_shiftvalue = Bin_base_x - Bin_depth - Safe_distance - GripperLength - FingerLength*cos(gripper_pitch_ang*ratio);
+    #Entry_X_shiftvalue = Bin_base_x - Bin_depth - Safe_distance - GripperLength - FingerLength*cos(gripper_pitch_ang*ratio);
+    Entry_X_shiftvalue = X_shifts;
+    print "Current X_shift value is:", Entry_X_shiftvalue;
 
     goal_pos = [];
     # Setting Configuration:
@@ -81,144 +85,302 @@ def generate_goal_points(Bin_base_x, Bin_base_y, Bin_base_z, using_torso = False
     #	J		K		L
     #		   Base
 
-    binA = testpnt();
-    binA.bin_num = "A";
-    binA.x = Entry_X_shiftvalue;
-    binA.y = Bin_base_y + Left_horizontal_ShiftValue;
-    binA.z = Bin_base_z + Level4;
-    binA.qx = default_orientation_x;
-    binA.qy = default_orientation_y;
-    binA.qz = default_orientation_z;
-    binA.qw = default_orientation_w;
-    goal_pos.append(binA);
+# ----------------------- A ----------------------------
+    binA_entrance = testpnt();
+    binA_entrance.bin_num = "A";
+    binA_entrance.pnt_property = "Entrance_point";
+    binA_entrance.x = Entry_X_shiftvalue;
+    binA_entrance.y = Bin_base_y + Left_horizontal_ShiftValue;
+    binA_entrance.z = Bin_base_z + Level4;
+    binA_entrance.qx = default_orientation_x;
+    binA_entrance.qy = default_orientation_y;
+    binA_entrance.qz = default_orientation_z;
+    binA_entrance.qw = default_orientation_w;
+    goal_pos.append(binA_entrance);  
+        
+    binA_exit = testpnt();    
+    binA_exit.bin_num = "A";
+    binA_exit.pnt_property = "Exit_point";
+    binA_exit.x = Entry_X_shiftvalue - Step_back;
+    binA_exit.y = Bin_base_y + Left_horizontal_ShiftValue;
+    binA_exit.z = Bin_base_z + Level4;
+    binA_exit.qx = default_orientation_x;
+    binA_exit.qy = default_orientation_y;
+    binA_exit.qz = default_orientation_z;
+    binA_exit.qw = default_orientation_w;
+    goal_pos.append(binA_exit);
 
-    binB = testpnt();
-    binB.bin_num = "B";
-    binB.x = Entry_X_shiftvalue;
-    binB.y = Bin_base_y;
-    binB.z = Bin_base_z + Level4;
-    binB.qx = default_orientation_x;
-    binB.qy = default_orientation_y;
-    binB.qz = default_orientation_z;
-    binB.qw = default_orientation_w;
-    goal_pos.append(binB);
-
-    binC = testpnt();
-    binC.bin_num = "C";
-    binC.x = Entry_X_shiftvalue;
-    binC.y = Bin_base_y - Right_horizontal_ShiftValue;
-    binC.z = Bin_base_z + Level4;
-    binC.qx = default_orientation_x;
-    binC.qy = default_orientation_y;
-    binC.qz = default_orientation_z;
-    binC.qw = default_orientation_w;
-    if using_torso:
-		goal_pos.append(binC);
-
-    binD = testpnt();
-    binD.bin_num = "D";
-    binD.x = Entry_X_shiftvalue;
-    binD.y = Bin_base_y + Left_horizontal_ShiftValue;
-    binD.z = Bin_base_z + Level3;
-    binD.qx = default_orientation_x;
-    binD.qy = default_orientation_y;
-    binD.qz = default_orientation_z;
-    binD.qw = default_orientation_w;
-    goal_pos.append(binD);
-
-    binE = testpnt();
-    binE.bin_num = "E";
-    binE.x = Entry_X_shiftvalue;
-    binE.y = Bin_base_y;
-    binE.z = Bin_base_z + Level3;
-    binE.qx = default_orientation_x;
-    binE.qy = default_orientation_y;
-    binE.qz = default_orientation_z;
-    binE.qw = default_orientation_w;
-    goal_pos.append(binE);
-
-    binF = testpnt();
-    binF.bin_num = "F";
-    binF.x = Entry_X_shiftvalue;
-    binF.y = Bin_base_y - Right_horizontal_ShiftValue;
-    binF.z = Bin_base_z + Level3;
-    binF.qx = default_orientation_x;
-    binF.qy = default_orientation_y;
-    binF.qz = default_orientation_z;
-    binF.qw = default_orientation_w;
-    if using_torso:
-		goal_pos.append(binF);
-
-    binG = testpnt();
-    binG.bin_num ="G";
-    binG.x = Entry_X_shiftvalue;
-    binG.y = Bin_base_y + Left_horizontal_ShiftValue;
-    binG.z = Bin_base_z + Level2;
-    binG.qx = default_orientation_x;
-    binG.qy = default_orientation_y;
-    binG.qz = default_orientation_z;
-    binG.qw = default_orientation_w;
-    goal_pos.append(binG);
-
-    binH = testpnt();
-    binH.bin_num = "H";
-    binH.x = Entry_X_shiftvalue + Modulate;
-    binH.y = Bin_base_y;
-    binH.z = Bin_base_z + Level2;
-    binH.qx = default_orientation_x;
-    binH.qy = default_orientation_y;
-    binH.qz = default_orientation_z;
-    binH.qw = default_orientation_w;
-    goal_pos.append(binH);
-
-    binI = testpnt();
-    binI.bin_num = "I";
-    binI.x = Entry_X_shiftvalue;
-    binI.y = Bin_base_y - Right_horizontal_ShiftValue;
-    binI.z = Bin_base_z + Level2;
-    binI.qx = default_orientation_x;
-    binI.qy = default_orientation_y;
-    binI.qz = default_orientation_z;
-    binI.qw = default_orientation_w;
-    if using_torso:
-		goal_pos.append(binI);
-
-    binJ = testpnt();
-    binJ.bin_num = "J";
-    binJ.x = Entry_X_shiftvalue;
-    binJ.y = Bin_base_y + Left_horizontal_ShiftValue;
-    binJ.z = Bin_base_z + Level1;
-    binJ.qx = default_orientation_x;
-    binJ.qy = default_orientation_y;
-    binJ.qz = default_orientation_z;
-    binJ.qw = default_orientation_w;
-    goal_pos.append(binJ);
-
-    binK = testpnt();
-    binK.bin_num = "K";
-    binK.x = Entry_X_shiftvalue;
-    binK.y = Bin_base_y;
-    binK.z = Bin_base_z + Level1;
-    binK.qx = default_orientation_x;
-    binK.qy = default_orientation_y;
-    binK.qz = default_orientation_z;
-    binK.qw = default_orientation_w;
-    goal_pos.append(binK);
-
-    binL = testpnt();
-    binL.bin_num = "L";
-    binL.x = Entry_X_shiftvalue;
-    binL.y = Bin_base_y - Right_horizontal_ShiftValue;
-    binL.z = Bin_base_z + Level1;
-    binL.qx = default_orientation_x;
-    binL.qy = default_orientation_y;
-    binL.qz = default_orientation_z;
-    binL.qw = default_orientation_w;
-    if using_torso:
-		goal_pos.append(binL);
+# ----------------------- B ----------------------------
+    binB_entrance = testpnt();
+    binB_entrance.bin_num = "B";
+    binB_entrance.pnt_property = "Entrance_point";
+    binB_entrance.x = Entry_X_shiftvalue;
+    binB_entrance.y = Bin_base_y;
+    binB_entrance.z = Bin_base_z + Level4;
+    binB_entrance.qx = default_orientation_x;
+    binB_entrance.qy = default_orientation_y;
+    binB_entrance.qz = default_orientation_z;
+    binB_entrance.qw = default_orientation_w;
+    goal_pos.append(binB_entrance);
     
-    return goal_pos;
+    binB_exit = testpnt();    
+    binB_exit.bin_num = "B";
+    binB_exit.pnt_property = "Exit_point";
+    binB_exit.x = Entry_X_shiftvalue - Step_back;
+    binB_exit.y = Bin_base_y;
+    binB_exit.z = Bin_base_z + Level4;
+    binB_exit.qx = default_orientation_x;
+    binB_exit.qy = default_orientation_y;
+    binB_exit.qz = default_orientation_z;
+    binB_exit.qw = default_orientation_w;
+    goal_pos.append(binB_exit);
 
+# ----------------------- C ----------------------------
+    binC_entrance = testpnt();
+    binC_entrance.bin_num = "C";
+    binC_entrance.pnt_property = "Entrance_point";
+    binC_entrance.x = Entry_X_shiftvalue;
+    binC_entrance.y = Bin_base_y - Right_horizontal_ShiftValue;
+    binC_entrance.z = Bin_base_z + Level4;
+    binC_entrance.qx = default_orientation_x;
+    binC_entrance.qy = default_orientation_y;
+    binC_entrance.qz = default_orientation_z;
+    binC_entrance.qw = default_orientation_w;
+    goal_pos.append(binC_entrance); 
+       
+    binC_exit = testpnt();    
+    binC_exit.bin_num = "C";
+    binC_exit.pnt_property = "Exit_point";
+    binC_exit.x = Entry_X_shiftvalue - Step_back;
+    binC_exit.y = Bin_base_y - Right_horizontal_ShiftValue;
+    binC_exit.z = Bin_base_z + Level4;
+    binC_exit.qx = default_orientation_x;
+    binC_exit.qy = default_orientation_y;
+    binC_exit.qz = default_orientation_z;
+    binC_exit.qw = default_orientation_w;
+    goal_pos.append(binC_exit);
+
+
+# ----------------------- D ----------------------------
+    binD_entrance = testpnt();
+    binD_entrance.bin_num = "D";
+    binD_entrance.pnt_property = "Entrance_point";
+    binD_entrance.x = Entry_X_shiftvalue;
+    binD_entrance.y = Bin_base_y + Left_horizontal_ShiftValue;
+    binD_entrance.z = Bin_base_z + Level3;
+    binD_entrance.qx = default_orientation_x;
+    binD_entrance.qy = default_orientation_y;
+    binD_entrance.qz = default_orientation_z;
+    binD_entrance.qw = default_orientation_w;
+    goal_pos.append(binD_entrance);      
+    binD_exit = testpnt();    
+    binD_exit.bin_num = "D";
+    binD_exit.pnt_property = "Exit_point";
+    binD_exit.x = Entry_X_shiftvalue - Step_back;
+    binD_exit.y = Bin_base_y + Left_horizontal_ShiftValue;
+    binD_exit.z = Bin_base_z + Level3;
+    binD_exit.qx = default_orientation_x;
+    binD_exit.qy = default_orientation_y;
+    binD_exit.qz = default_orientation_z;
+    binD_exit.qw = default_orientation_w;
+    goal_pos.append(binD_exit);
+
+# ----------------------- E ----------------------------
+    binE_entrance = testpnt();
+    binE_entrance.bin_num = "E";
+    binE_entrance.pnt_property = "Entrance_point";
+    binE_entrance.x = Entry_X_shiftvalue;
+    binE_entrance.y = Bin_base_y;
+    binE_entrance.z = Bin_base_z + Level3;
+    binE_entrance.qx = default_orientation_x;
+    binE_entrance.qy = default_orientation_y;
+    binE_entrance.qz = default_orientation_z;
+    binE_entrance.qw = default_orientation_w;
+    goal_pos.append(binE_entrance);
+    binE_exit = testpnt();    
+    binE_exit.bin_num = "E";
+    binE_exit.pnt_property = "Exit_point";
+    binE_exit.x = Entry_X_shiftvalue - Step_back;
+    binE_exit.y = Bin_base_y;
+    binE_exit.z = Bin_base_z + Level3;
+    binE_exit.qx = default_orientation_x;
+    binE_exit.qy = default_orientation_y;
+    binE_exit.qz = default_orientation_z;
+    binE_exit.qw = default_orientation_w;
+    goal_pos.append(binE_exit);
+
+# ----------------------- F ----------------------------
+    binF_entrance = testpnt();
+    binF_entrance.bin_num = "F";
+    binF_entrance.pnt_property = "Entrance_point";
+    binF_entrance.x = Entry_X_shiftvalue;
+    binF_entrance.y = Bin_base_y - Right_horizontal_ShiftValue;
+    binF_entrance.z = Bin_base_z + Level3;
+    binF_entrance.qx = default_orientation_x;
+    binF_entrance.qy = default_orientation_y;
+    binF_entrance.qz = default_orientation_z;
+    binF_entrance.qw = default_orientation_w;
+    goal_pos.append(binF_entrance); 
+       
+    binF_exit = testpnt();    
+    binF_exit.bin_num = "F";
+    binF_exit.pnt_property = "Exit_point";
+    binF_exit.x = Entry_X_shiftvalue - Step_back;
+    binF_exit.y = Bin_base_y - Right_horizontal_ShiftValue;
+    binF_exit.z = Bin_base_z + Level3;
+    binF_exit.qx = default_orientation_x;
+    binF_exit.qy = default_orientation_y;
+    binF_exit.qz = default_orientation_z;
+    binF_exit.qw = default_orientation_w;
+    goal_pos.append(binF_exit);
+
+# ----------------------- G ----------------------------
+    binG_entrance = testpnt();
+    binG_entrance.bin_num = "G";
+    binG_entrance.pnt_property = "Entrance_point";
+    binG_entrance.x = Entry_X_shiftvalue;
+    binG_entrance.y = Bin_base_y + Left_horizontal_ShiftValue;
+    binG_entrance.z = Bin_base_z + Level2;
+    binG_entrance.qx = default_orientation_x;
+    binG_entrance.qy = default_orientation_y;
+    binG_entrance.qz = default_orientation_z;
+    binG_entrance.qw = default_orientation_w;
+    goal_pos.append(binG_entrance);      
+    binG_exit = testpnt();    
+    binG_exit.bin_num = "G";
+    binG_exit.pnt_property = "Exit_point";
+    binG_exit.x = Entry_X_shiftvalue - Step_back;
+    binG_exit.y = Bin_base_y + Left_horizontal_ShiftValue;
+    binG_exit.z = Bin_base_z + Level2;
+    binG_exit.qx = default_orientation_x;
+    binG_exit.qy = default_orientation_y;
+    binG_exit.qz = default_orientation_z;
+    binG_exit.qw = default_orientation_w;
+    goal_pos.append(binG_exit);
+
+# ----------------------- H ----------------------------
+    binH_entrance = testpnt();
+    binH_entrance.bin_num = "H";
+    binH_entrance.pnt_property = "Entrance_point";
+    binH_entrance.x = Entry_X_shiftvalue;
+    binH_entrance.y = Bin_base_y;
+    binH_entrance.z = Bin_base_z + Level2;
+    binH_entrance.qx = default_orientation_x;
+    binH_entrance.qy = default_orientation_y;
+    binH_entrance.qz = default_orientation_z;
+    binH_entrance.qw = default_orientation_w;
+    goal_pos.append(binH_entrance);
+    binH_exit = testpnt();    
+    binH_exit.bin_num = "H";
+    binH_exit.pnt_property = "Exit_point";
+    binH_exit.x = Entry_X_shiftvalue - Step_back;
+    binH_exit.y = Bin_base_y;
+    binH_exit.z = Bin_base_z + Level2;
+    binH_exit.qx = default_orientation_x;
+    binH_exit.qy = default_orientation_y;
+    binH_exit.qz = default_orientation_z;
+    binH_exit.qw = default_orientation_w;
+    goal_pos.append(binH_exit);
+
+# ----------------------- I ----------------------------
+    binI_entrance = testpnt();
+    binI_entrance.bin_num = "I";
+    binI_entrance.pnt_property = "Entrance_point";
+    binI_entrance.x = Entry_X_shiftvalue;
+    binI_entrance.y = Bin_base_y - Right_horizontal_ShiftValue;
+    binI_entrance.z = Bin_base_z + Level2;
+    binI_entrance.qx = default_orientation_x;
+    binI_entrance.qy = default_orientation_y;
+    binI_entrance.qz = default_orientation_z;
+    binI_entrance.qw = default_orientation_w;
+    goal_pos.append(binI_entrance); 
+       
+    binI_exit = testpnt();    
+    binI_exit.bin_num = "I";
+    binI_exit.pnt_property = "Exit_point";
+    binI_exit.x = Entry_X_shiftvalue - Step_back;
+    binI_exit.y = Bin_base_y - Right_horizontal_ShiftValue;
+    binI_exit.z = Bin_base_z + Level2;
+    binI_exit.qx = default_orientation_x;
+    binI_exit.qy = default_orientation_y;
+    binI_exit.qz = default_orientation_z;
+    binI_exit.qw = default_orientation_w;
+    goal_pos.append(binI_exit);
+
+# ----------------------- J ----------------------------
+    binJ_entrance = testpnt();
+    binJ_entrance.bin_num = "G";
+    binJ_entrance.pnt_property = "Entrance_point";
+    binJ_entrance.x = Entry_X_shiftvalue;
+    binJ_entrance.y = Bin_base_y + Left_horizontal_ShiftValue;
+    binJ_entrance.z = Bin_base_z + Level2;
+    binJ_entrance.qx = default_orientation_x;
+    binJ_entrance.qy = default_orientation_y;
+    binJ_entrance.qz = default_orientation_z;
+    binJ_entrance.qw = default_orientation_w;
+    goal_pos.append(binJ_entrance);      
+    binJ_exit = testpnt();    
+    binJ_exit.bin_num = "G";
+    binJ_exit.pnt_property = "Exit_point";
+    binJ_exit.x = Entry_X_shiftvalue - Step_back;
+    binJ_exit.y = Bin_base_y + Left_horizontal_ShiftValue;
+    binJ_exit.z = Bin_base_z + Level2;
+    binJ_exit.qx = default_orientation_x;
+    binJ_exit.qy = default_orientation_y;
+    binJ_exit.qz = default_orientation_z;
+    binJ_exit.qw = default_orientation_w;
+    goal_pos.append(binJ_exit);
+
+# ----------------------- K ----------------------------
+    binK_entrance = testpnt();
+    binK_entrance.bin_num = "K";
+    binK_entrance.pnt_property = "Entrance_point";
+    binK_entrance.x = Entry_X_shiftvalue;
+    binK_entrance.y = Bin_base_y;
+    binK_entrance.z = Bin_base_z + Level2;
+    binK_entrance.qx = default_orientation_x;
+    binK_entrance.qy = default_orientation_y;
+    binK_entrance.qz = default_orientation_z;
+    binK_entrance.qw = default_orientation_w;
+    goal_pos.append(binK_entrance);
+    binK_exit = testpnt();    
+    binK_exit.bin_num = "K";
+    binK_exit.pnt_property = "Exit_point";
+    binK_exit.x = Entry_X_shiftvalue - Step_back;
+    binK_exit.y = Bin_base_y;
+    binK_exit.z = Bin_base_z + Level2;
+    binK_exit.qx = default_orientation_x;
+    binK_exit.qy = default_orientation_y;
+    binK_exit.qz = default_orientation_z;
+    binK_exit.qw = default_orientation_w;
+    goal_pos.append(binK_exit);
+
+# ----------------------- L ----------------------------
+    binL_entrance = testpnt();
+    binL_entrance.bin_num = "L";
+    binL_entrance.pnt_property = "Entrance_point";
+    binL_entrance.x = Entry_X_shiftvalue;
+    binL_entrance.y = Bin_base_y - Right_horizontal_ShiftValue;
+    binL_entrance.z = Bin_base_z + Level1;
+    binL_entrance.qx = default_orientation_x;
+    binL_entrance.qy = default_orientation_y;
+    binL_entrance.qz = default_orientation_z;
+    binL_entrance.qw = default_orientation_w;
+    goal_pos.append(binL_entrance); 
+       
+    binL_exit = testpnt();    
+    binL_exit.bin_num = "L";
+    binL_exit.pnt_property = "Exit_point";
+    binL_exit.x = Entry_X_shiftvalue - Step_back;
+    binL_exit.y = Bin_base_y - Right_horizontal_ShiftValue;
+    binL_exit.z = Bin_base_z + Level1;
+    binL_exit.qx = default_orientation_x;
+    binL_exit.qy = default_orientation_y;
+    binL_exit.qz = default_orientation_z;
+    binL_exit.qw = default_orientation_w;
+    goal_pos.append(binL_exit);
+    return goal_pos;
+    
 class Jnt_state_goal:
     def __init__(self):
         self.bin_num = chr(ord('S'));
@@ -238,8 +400,7 @@ def generate_left_arm_seed_state():
     Goal2.bin_num = chr(ord('A')+1);
     Goal2.jnt_val = [2.0470397118623382, -1.5900951732258286, 2.8176173676670175, -0.9284428878232793, 1.1380462986024937, 1.7034889656174173, -0.9567357683589586];
     seed_state.append(Goal2);
-
-
+    
 
     Goal4 = Jnt_state_goal();
     Goal4.bin_num = chr(ord('A')+3);
@@ -277,7 +438,7 @@ def generate_left_arm_seed_state():
     return seed_state;
 
 def generate_left_arm_torso_seed_state():
-	#
+
     seed_state = [];
     
     # torso + arm_joint
@@ -340,8 +501,8 @@ def generate_left_arm_torso_seed_state():
     Goal12 = Jnt_state_goal();
     Goal12.bin_num = chr(ord('A')+11);
     Goal12.jnt_val = [-0.8107283536120312, 1.1885068501680074, 1.4407099293599144, -0.5506253027562428, -1.777021554647835, -1.1800589893491018, 1.8965499173550684, -0.505319212428926];
-    seed_state.append(Goal12); 
-    
+    seed_state.append(Goal12);
+        
     return seed_state;
     
 def generate_key_joint_state(group_name):
@@ -360,14 +521,12 @@ def generate_key_joint_state(group_name):
 	elif group_name == "arm_left_torso":
 		Init_pos.jnt_val = left_arm_torso_init_joint_value;
 		drop_pos.jnt_val = left_arm_torso_init_joint_value;
-		
 	elif group_name == "arm_right":
 		Init_pos.jnt_val = right_arm_init_joint_value;
 		drop_pos.jnt_val = right_arm_init_joint_value;
 	elif group_name == "arm_right_torso":
 		Init_pos.jnt_val = right_arm_torso_init_joint_value;
 		drop_pos.jnt_val = right_arm_torso_init_joint_value;
-		
 	key_joint_state_set.append(Init_pos);
 	key_joint_state_set.append(drop_pos);
 	

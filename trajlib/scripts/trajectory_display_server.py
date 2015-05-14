@@ -16,6 +16,9 @@ from moveit_msgs.msg import RobotTrajectory
 from moveit_msgs.srv import ExecuteKnownTrajectory, ExecuteKnownTrajectoryRequest
 from trajectory_msgs.msg import JointTrajectoryPoint
 
+from apc_util.collision import attach_sphere
+from geometry_msgs.msg import PoseStamped
+
 from motoman_configuration import arm_left_init, arm_right_init;
 from bin_loader import Load_Bin_model, X_pos, Y_pos, Z_pos;
 
@@ -40,14 +43,12 @@ def runTrajectory(req):
     elif req.task == "use_gripper":
 		file_name = file_root + "/left_arm_drop";
 		traj_execute_group = moveit_commander.MoveGroupCommander("arm_left_torso");
-        
     elif req.task == "Forward":
         file_name = file_root+"/bin" + req.bin_num +"/forward";
         traj_execute_group = moveit_commander.MoveGroupCommander("arm_left_torso");
     elif req.task == "Drop":
         file_name = file_root+"/bin" + req.bin_num+"/drop";
         traj_execute_group = moveit_commander.MoveGroupCommander("arm_left_torso");
-        
     elif req.task == "Pick":
         file_name = file_root+"/bin" + req.bin_num+"/Pick";
         traj_execute_group = moveit_commander.MoveGroupCommander("arm_right_torso");
@@ -79,6 +80,20 @@ def runTrajectory(req):
     display_trajectory_publisher.publish(display_trajectory);
    
     print "============ Waiting while", file_name, " is visualized (again)..." 
+    
+    pose = PoseStamped()
+    pose.header.frame_id = "/arm_left_link_7_t"
+    pose.header.stamp = rospy.Time.now()
+    pose.pose.position.x = 0
+    pose.pose.position.y = 0
+    pose.pose.position.z = -0.35
+    pose.pose.orientation.x = 0
+    pose.pose.orientation.y = 0
+    pose.pose.orientation.z = 0
+    pose.pose.orientation.w = 1
+    attach_sphere("arm_left_link_7_t", "Object", pose, 0.17, ["hand_left_finger_1_link_2", "hand_left_finger_1_link_3", "hand_left_finger_1_link_3_tip", "hand_left_finger_2_link_2", "hand_left_finger_2_link_3", "hand_left_finger_2_link_3_tip", "hand_left_finger_middle_link_2", "hand_left_finger_middle_link_3", "hand_left_finger_middle_link_3_tip"]);
+
+
     traj_execute_group.execute(plan);
     print "Trajectory ", file_name, " finished!"
     f.close();
