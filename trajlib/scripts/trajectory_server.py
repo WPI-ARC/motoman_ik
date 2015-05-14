@@ -37,7 +37,9 @@ def runTrajectory(req):
     if req.task == "Forward":
         file_name = file_root+"/forward";
     elif req.task == "Drop":
-        file_name = file_root+"/drop";
+        file_name = file_root+"/drop";    
+    elif req.task == "Pick":
+        file_name = file_root+"/Pick";
     else :
         return taskResponse(False);
 
@@ -50,17 +52,6 @@ def runTrajectory(req):
     f.close(); 
     
     return GetTrajectoryResponse(plan, True);
-
-def pos_init():		
-	
-	arm_right_group = moveit_commander.MoveGroupCommander("arm_right");	
-	arm_left_group = moveit_commander.MoveGroupCommander("arm_left");
-
-	arm_left_group.set_start_state_to_current_state();
-	arm_left_group.go(left_arm_init_joint_value);
-	
-	arm_right_group.set_start_state_to_current_state();
-	arm_right_group.go(right_arm_init_joint_value);
 
 def Start_server():
 
