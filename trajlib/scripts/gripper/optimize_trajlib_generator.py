@@ -32,11 +32,12 @@ from gripper_goal_pos_generate import left_arm_init_joint_value, right_arm_init_
 # Function
 from gripper_goal_pos_generate import generate_goal_points, generate_left_arm_seed_state, generate_left_arm_torso_seed_state, generate_key_joint_state;
 
+from apc_util.collision import attach_sphere, remove_object
 
 test_num = 1;
-planning_time = 15
+planning_time = 30
 
-test_weight = 0.9;
+test_weight = 0.0;
 using_torso = True;
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../scripts"))
@@ -106,7 +107,7 @@ def arm_init(left_arm_group_handle, right_arm_group_handle):
 		right_arm_group_handle.go(right_arm_init_joint_value);
 
 def Save_traj(file_name,plan):
-	
+
     print "saving ",file_name;    
     buf = StringIO();
     plan.serialize(buf);
@@ -156,73 +157,56 @@ def Copy_joint_value(group_name, joint_values):
         
     return Target_joint_value;
 
-def Add_bin_model(bin_x, bin_y, bin_z):
-	bin_pose = PoseStamped();
-	bin_pose.pose.position.x = bin_x;
-	bin_pose.pose.position.y = bin_y;
-	bin_pose.pose.position.z = bin_z;
-	bin_pose.pose.orientation.x = 0.5;
-	bin_pose.pose.orientation.y = 0.5;
-	bin_pose.pose.orientation.z = 0.5;
-	bin_pose.pose.orientation.w = 0.5;
-	scene = moveit_commander.PlanningSceneInterface();
-	scene.attach_mesh( link =  "base_link",
-						name = "kiva_pod",
-						pose =  bin_pose,
-						filename = os.path.join(os.path.dirname(__file__), "../apc_models/meshes/pod_lowres.stl"))
-	scene.add_box(name = "shelf_box",
-					pose =  bin_pose,
-					size = (0.87, 0.87, 1.87));
-    
+def calculateIK_solution(pnt, ik_handle, seed_config, group_handle):
+
+	seed_state = Generate_joint_state_msg(group_handle,seed_config.jnt_val);
+	
+	target_pnt = geometry_msgs.msg.Pose();
+	target_pnt.position.x = pnt.x;
+	target_pnt.position.y = pnt.y;
+	target_pnt.position.z = pnt.z;
+	target_pnt.orientation.x = pnt.qx;
+	target_pnt.orientation.y = pnt.qy;
+	target_pnt.orientation.z = pnt.qz;
+	target_pnt.orientation.w = pnt.qw;
+	result = find_IK_solution(ik_handle, target_pnt, seed_state, group_handle.get_name());
+	
+	IK_solution = Jnt_state_goal();
+	if result.error_code.val != 1:
+		print "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
+		print "Can't find IK solution for Bin", pnt.bin_num, pnt.pnt_property;
+		print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>";
+		return IK_solution;
+		
+	IK_solution.jnt_val = Copy_joint_value(group_handle.get_name(),result.solution.joint_state.position);
+	IK_solution.bin_num = seed_config.bin_num;
+	IK_solution.pos_property = pnt.pnt_property;
+	
+	return IK_solution;
+	
+
 def generate_configurationSet(target_pnt_set, seed_config_set,ik_handle,group_handle):
 
     arm_config = [];
-    if len(target_pnt_set) != len(seed_config_set):
-        print "WARNNING!! target_pnt number is not equal to seed_config_set number, Exit!";
-        return arm_config;
+    
+    count = 1;
+    for num in range(0,len(seed_config_set)):
+		seed_config = seed_config_set[num];
 
-    for num in range(0,len(target_pnt_set)):
-
-        pnt = target_pnt_set[num];
-        target_pnt = geometry_msgs.msg.Pose();
-        target_pnt.position.x = pnt.x;
-        target_pnt.position.y = pnt.y;
-        target_pnt.position.z = pnt.z;
-        target_pnt.orientation.x = pnt.qx;
-        target_pnt.orientation.y = pnt.qy;
-        target_pnt.orientation.z = pnt.qz;
-        target_pnt.orientation.w = pnt.qw;
-
-        seed_config = seed_config_set[num];
-        seed_state = Generate_joint_state_msg(group_handle,seed_config.jnt_val);
-
-        result = find_IK_solution(ik_handle, target_pnt, seed_state, group_handle.get_name());
-
-        if result.error_code.val != 1:
-            attempt = 0;
-            Success = False;
-            while attempt < 10:
-                attempt += 1;
-                target_pnt.position.x += 0.01;
-                result = find_IK_solution(ik_handle, target_pnt, seed_state, group_handle.get_name());
-                if result.error_code.val == 1:
-                    Success = True;
-                    break;
-            if Success is not True:
-                print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>";
-                print "Can't find IK solution for Bin", pnt.bin_num, pnt.pnt_property;
-                print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>";
-                continue;
-
-        IK_solution = Jnt_state_goal();
-        IK_solution.jnt_val = Copy_joint_value(group_handle.get_name(),result.solution.joint_state.position);
-        IK_solution.bin_num = seed_config.bin_num;
-
-        arm_config.append(IK_solution);
+		pnt = target_pnt_set[2*count -2];
+		Solution_1 = calculateIK_solution(pnt,ik_handle,seed_config,group_handle);
+		print "Solving IK for pnt:", Solution_1.bin_num,Solution_1.pos_property;
+		arm_config.append(Solution_1);
+		
+		pnt = target_pnt_set[2*count-1];
+		Solution_2 = calculateIK_solution(pnt,ik_handle,seed_config,group_handle);
+		print "Solving IK for pnt:", Solution_2.bin_num,Solution_2.pos_property;
+		arm_config.append(Solution_2);		
+		count += 1;
 
     print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>.."
     print "Configuration update complete!!"
-
+    
     return arm_config;
 
 def Generate_traj_for_key2pnt(key_config_set, goal_config_set, group_name, planner_handle, cost_weight, time_limit):
@@ -247,11 +231,12 @@ def Generate_traj_for_key2pnt(key_config_set, goal_config_set, group_name, plann
 		server_msg.cost_weight = cost_weight;
 		server_msg.time_limit = time_limit;
 		
-		for num in range(0,len(goal_config_set)):
-			print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+		num = 0;
+		while(num < len(goal_config_set)):
+			print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
 			current_goal_config = goal_config_set[num];
 			# Will calculate 20 times for each trajectory
-			print "Generating the trajectory from start --> bin", current_goal_config.bin_num;
+			print "Generating the trajectory from START --> bin", current_goal_config.bin_num,current_goal_config.pos_property;
 			for count in range(0,test_num):
 				# Plan from start to the bin
 				server_msg.start_config = start_pos.jnt_val;
@@ -264,7 +249,7 @@ def Generate_traj_for_key2pnt(key_config_set, goal_config_set, group_name, plann
 												  0);
 												  
 				if response_forward.status == response_forward.SUCCESS:
-					print "Weight:",server_msg.cost_weight," Success!";
+					print "Weight:",server_msg.cost_weight," SUCCESS!";
 					if(flg_Save_property):
 						row_num += 1;
 						traj_name = "Start-->bin" + current_goal_config.bin_num;
@@ -281,11 +266,13 @@ def Generate_traj_for_key2pnt(key_config_set, goal_config_set, group_name, plann
 					Save_traj(file_name,response_forward.plan);
 					success_num += 1;
 				else:
-					print "Planning from Start Position to bin",current_goal_config.bin_num, " Failed!";
+					print "Planning from START to bin",current_goal_config.bin_num, current_goal_config.pos_property, " FAILED!";
 			
 			print "-----------------------------------------------------------------------";
 			
-			print "Generating the trajectory from bin", current_goal_config.bin_num, "--> drop";
+			num += 1;
+			current_goal_config = goal_config_set[num];
+			print "Generating the trajectory from bin", current_goal_config.bin_num,current_goal_config.pos_property, "--> DROP";
 			for count in range(0,test_num):					
 				server_msg.start_config = current_goal_config.jnt_val;
 				server_msg.target_config = drop_pos.jnt_val;
@@ -296,10 +283,10 @@ def Generate_traj_for_key2pnt(key_config_set, goal_config_set, group_name, plann
 											   server_msg.time_limit,
 											   0);
 				if response_back.status == response_back.SUCCESS:
-					print "Weight:",server_msg.cost_weight,"Success!";
+					print "Weight:",server_msg.cost_weight,"SUCCESS!";
 					if(flg_Save_property):
 						row_num += 1;
-						traj_name = "bin" + current_goal_config.bin_num + "-->drop";
+						traj_name = "bin" + current_goal_config.bin_num + "-->DROP";
 						property_table(worksheet,
 									   row_num,
 									   traj_name, 
@@ -313,7 +300,8 @@ def Generate_traj_for_key2pnt(key_config_set, goal_config_set, group_name, plann
 					Save_traj(file_name,response_back.plan);
 					success_num += 1;
 				else:
-					print "Planning from bin",current_goal_config.bin_num, "to Drop position Failed!";
+					print "Planning from ",current_goal_config.bin_num, current_goal_config.pos_property,"to DROP , FAILED!";
+				num += 1;
 		
 		if flg_Save_property:
 			workbook.close();
@@ -334,14 +322,10 @@ if __name__=='__main__':
 	moveit_commander.roscpp_initialize(sys.argv);
 	rospy.init_node('Optimize_trajectory_Generator', anonymous=True);
 
-	if using_torso:
-		arm_left_group = moveit_commander.MoveGroupCommander("arm_left_torso");
-		arm_right_group = moveit_commander.MoveGroupCommander("arm_right_torso");
-	else:
-		arm_left_group = moveit_commander.MoveGroupCommander("arm_left");
-		arm_right_group = moveit_commander.MoveGroupCommander("arm_right");		
-		torso_group = moveit_commander.MoveGroupCommander("torso");
-		torso_init(torso_group);
+	remove_object();
+	
+	arm_left_group = moveit_commander.MoveGroupCommander("arm_left_torso");
+	arm_right_group = moveit_commander.MoveGroupCommander("arm_right_torso");
 	arm_init(arm_left_group, arm_right_group);
 
 	if len(sys.argv)>1:
@@ -362,8 +346,10 @@ if __name__=='__main__':
 	print ">>>> Waiting for service `compute_ik` >>>>";
 	rospy.wait_for_service('compute_ik');
 	ik = rospy.ServiceProxy("compute_ik", GetPositionIK);
-	print "Generating Target Ponits..."
+	
+	print "Generating Target Ponits...";
 	Goal_points = generate_goal_points(Bin_base_x = X_pos, Bin_base_y = Y_pos, Bin_base_z = Z_pos, using_torso = using_torso);
+	
 	print "Total", len(Goal_points), "target points";
 	Draw_GoalPnt(Goal_points);
 
@@ -371,7 +357,7 @@ if __name__=='__main__':
 	if using_torso:
 		left_arm_seed_states = generate_left_arm_torso_seed_state();
 	else:
-		left_arm_seed_states = generate_left_arm_seed_state();
+		left_arm_seed_states = generate_left_arm_seed_state();	
 	print "Total", len(left_arm_seed_states), "seed states";
     
 	print "Generating new Configurations..."
@@ -383,6 +369,19 @@ if __name__=='__main__':
 	print ">>>> Waiting for service 'Optimize_plan_server' >>>>";
 	rospy.wait_for_service('Optimize_plan_server');
 	op_planner = rospy.ServiceProxy("Optimize_plan_server", PathPlan);
+
+    
+	pose = PoseStamped()
+	pose.header.frame_id = "/arm_left_link_7_t"
+	pose.header.stamp = rospy.Time.now()
+	pose.pose.position.x = 0
+	pose.pose.position.y = 0
+	pose.pose.position.z = -0.35
+	pose.pose.orientation.x = 0
+	pose.pose.orientation.y = 0
+	pose.pose.orientation.z = 0
+	pose.pose.orientation.w = 1
+	attach_sphere("arm_left_link_7_t", "Object", pose, 0.17, ["hand_left_finger_1_link_2", "hand_left_finger_1_link_3", "hand_left_finger_1_link_3_tip", "hand_left_finger_2_link_2", "hand_left_finger_2_link_3", "hand_left_finger_2_link_3_tip", "hand_left_finger_middle_link_2", "hand_left_finger_middle_link_3", "hand_left_finger_middle_link_3_tip"]);
 
 	print ">>>> Start Generating trajectory library (from KeyPos <--> Bin)>>>>";
 	Generate_traj_for_key2pnt(key_joint_state, 
