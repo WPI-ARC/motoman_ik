@@ -40,6 +40,9 @@ def runTrajectory(req):
         file_name = file_root+"/drop";    
     elif req.task == "Pick":
         file_name = file_root+"/Pick";
+    elif req.task == "Scan":
+        file_name = file_root+"/scan";
+		
     else :
         return taskResponse(False);
 

@@ -16,10 +16,10 @@ from moveit_msgs.msg import RobotTrajectory
 from moveit_msgs.srv import ExecuteKnownTrajectory, ExecuteKnownTrajectoryRequest
 from trajectory_msgs.msg import JointTrajectoryPoint
 
-from apc_util.collision import attach_sphere
+from apc_util.collision import attach_sphere, remove_object
 from geometry_msgs.msg import PoseStamped
 
-from motoman_configuration import arm_left_init, arm_right_init;
+from motoman_configuration import arm_left_home, arm_right_home;
 from bin_loader import Load_Bin_model, X_pos, Y_pos, Z_pos;
 
 def runTrajectory(req):
@@ -34,9 +34,11 @@ def runTrajectory(req):
     
     # Get the trajectory
     file_root = os.path.join(os.path.dirname(__file__), "../trajectories");
+    #file_root = os.path.join(os.path.dirname(__file__), "../traj_updates");
 
     traj_execute_group = moveit_commander.MoveGroupCommander("arm_right_torso");
-    
+
+# Gripper Hand
     if req.task == "use_tray":
 		file_name = file_root + "/left_arm_side";
 		traj_execute_group = moveit_commander.MoveGroupCommander("arm_left_torso");
@@ -49,6 +51,11 @@ def runTrajectory(req):
     elif req.task == "Drop":
         file_name = file_root+"/bin" + req.bin_num+"/drop";
         traj_execute_group = moveit_commander.MoveGroupCommander("arm_left_torso");
+    elif req.task == "Scan":
+        file_name = file_root+"/bin" + req.bin_num+"/scan";
+        traj_execute_group = moveit_commander.MoveGroupCommander("arm_left_torso");
+
+# Tray Hand
     elif req.task == "Pick":
         file_name = file_root+"/bin" + req.bin_num+"/Pick";
         traj_execute_group = moveit_commander.MoveGroupCommander("arm_right_torso");
@@ -93,10 +100,10 @@ def runTrajectory(req):
     pose.pose.orientation.w = 1
     attach_sphere("arm_left_link_7_t", "Object", pose, 0.17, ["hand_left_finger_1_link_2", "hand_left_finger_1_link_3", "hand_left_finger_1_link_3_tip", "hand_left_finger_2_link_2", "hand_left_finger_2_link_3", "hand_left_finger_2_link_3_tip", "hand_left_finger_middle_link_2", "hand_left_finger_middle_link_3", "hand_left_finger_middle_link_3_tip"]);
 
-
     traj_execute_group.execute(plan);
     print "Trajectory ", file_name, " finished!"
     f.close();
+    remove_object();
         
     return GetTrajectoryResponse(plan,True);
 
@@ -106,10 +113,10 @@ def pos_init():
 	arm_left_group = moveit_commander.MoveGroupCommander("arm_left_torso");
 
 	arm_left_group.set_start_state_to_current_state();
-	arm_left_group.go(arm_left_init);
+	arm_left_group.go(arm_left_home);
 	
 	arm_right_group.set_start_state_to_current_state();
-	arm_right_group.go(arm_right_init);
+	arm_right_group.go(arm_right_home);
 
 def Start_server():
 
