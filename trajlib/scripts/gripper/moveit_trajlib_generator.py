@@ -280,7 +280,7 @@ def Generate_traj_for_key2pnt(key_config_set, goal_config_set, group_handle):
 		else:
 			print "Planning from Start Position to bin",entrance_goal_config.bin_num, entrance_goal_config.pos_property, " Failed!";
 			count += 2;
-	
+
 	print "Total success number: ",success_num,"/",total_traj_num;
 
 def Generate_traj_for_home2scan(home_pos, scan_config_set, group_handle):
@@ -430,11 +430,11 @@ if __name__=='__main__':
 		X_pos = float(sys.argv[1]);
 		Y_pos = float(sys.argv[2]);
 		Z_pos = float(sys.argv[3]);
-	else:
-		X_pos = default_Bin_X;
-		Y_pos = default_Bin_Y;
-		Z_pos = default_Bin_Z;
-		print "No distance assigned, using default parameters: ",X_pos, Y_pos, Z_pos;
+	
+	X_pos = default_Bin_X;
+	Y_pos = default_Bin_Y;
+	Z_pos = default_Bin_Z;
+	print "Current Shelf Position: ",X_pos, Y_pos, Z_pos;
 	Load_Bin_model(X_pos, Y_pos, Z_pos);
 
 	print ">>>> Waiting for service `compute_ik` >>>>";
@@ -473,7 +473,6 @@ if __name__=='__main__':
 	LEFT_ARM_EXIT_CONFIG_SET = Update_seedstate(Exit_points, left_arm_Picking_seedstate_set, ik, arm_left_group);
 	print "Total", len(LEFT_ARM_EXIT_CONFIG_SET), "EXIT goal states";
 	
-	
 	print ">>>> Start Generating trajectory library (from HOME --> SCAN)...";
 	Draw_GoalPnt(Scanning_points, 0.06, [1,0,0]);
 	Generate_traj_for_home2scan(key_joint_state[0],LEFT_ARM_SCAN_CONFIG_SET,arm_left_group);
@@ -482,8 +481,10 @@ if __name__=='__main__':
 	#Draw_GoalPnt(Enter_points, 0.04, [1,1,0]);	
 	#Generate_traj_for_scan2enter(LEFT_ARM_SCAN_CONFIG_SET, LEFT_ARM_ENTER_CONFIG_SET,arm_left_group);	
 
-	#print ">>>> Start Generating trajectory library (from EXIT --> HOME)...";
-	#Draw_GoalPnt(Exit_points, 0.04, [0,1,0]);
+	print ">>>> Start Generating trajectory library (from EXIT --> HOME)...";
+	Generate_traj_for_exit2home()
+	Draw_GoalPnt(Exit_points, 0.04, [0,1,0]);
+	Generate_traj_for_exit2home
 
 	#ScanPos --> PickPos Library
 	#print ">>>> Generating PICK/DROP goal Ponits..."

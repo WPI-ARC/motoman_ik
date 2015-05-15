@@ -14,7 +14,6 @@ left_arm_torso_init_joint_value = arm_left_home;
 left_arm_torso_drop_joint_value = arm_left_drop;
 right_arm_torso_init_joint_value = arm_right_home;
 
-
 gripper_pitch_ang = 90;
 roll = -180;
 yaw = 90;

@@ -40,10 +40,10 @@ def runTrajectory(req):
 
 # Gripper Hand
     if req.task == "use_tray":
-		file_name = file_root + "/left_arm_side";
+		file_name = file_root + "/left_arm_drop2home";
 		traj_execute_group = moveit_commander.MoveGroupCommander("arm_left_torso");
     elif req.task == "use_gripper":
-		file_name = file_root + "/left_arm_drop";
+		file_name = file_root + "/left_arm_home2drop";
 		traj_execute_group = moveit_commander.MoveGroupCommander("arm_left_torso");
     elif req.task == "Forward":
         file_name = file_root+"/bin" + req.bin_num +"/forward";
