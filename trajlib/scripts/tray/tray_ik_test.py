@@ -23,7 +23,7 @@ from sensor_msgs.msg import JointState
 from visualization_msgs.msg import Marker
 from visualization_msgs.msg import MarkerArray
 
-from tray_goal_pos_generator import generate_frontface_positions, seed_state_generator, arm_right_init, arm_left_init;
+from tray_goal_pos_generator import generate_frontface_positions, seed_state_generator, arm_right_home, arm_left_home;
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../scripts"));
 from bin_loader import Load_Bin_model, X_pos, Y_pos, Z_pos;
@@ -31,11 +31,10 @@ default_Bin_X = X_pos;
 default_Bin_Y = Y_pos;
 default_Bin_Z = Z_pos;
 
-left_arm_init_joint_value = arm_left_init;
-right_arm_init_joint_value = arm_right_init;	
+left_arm_init_joint_value = arm_left_home;
+right_arm_init_joint_value = arm_right_home;
 
-Planning_time = 90;
-
+Planning_time = 60;
 
 topic = '/visualization_marker';
 marker_publisher = rospy.Publisher(topic, Marker);
@@ -87,10 +86,9 @@ def pos_init(left_arm_group_handle, right_arm_group_handle):
 	left_arm_group_handle.set_start_state_to_current_state();	
 	left_arm_group_handle.go(left_arm_init_joint_value);
 
-def Save_traj(plan):			
-	folder_name = os.path.join(os.path.dirname(__file__), "../../trajectories/bin") + "I";
-	file_name = folder_name + "/"+ "Pick";	
-	#print "saving bin.",goal_jnt_value.bin_num,"trajectory to file",file_name;
+def Save_traj(plan, file_name):			
+
+	print "saving trajectory to file",file_name;
 	buf = StringIO();
 	plan.serialize(buf);				
 	f = open(file_name,"w");
@@ -130,7 +128,8 @@ def Generate_configuration_set(group_handle, pose_target_set, ik_handle):
 			#print "IK solution for Bin", pose_target.bin_num,"is:"
 			#print ik_solution;
 			#Arm_config_set.append(ik_solution);
-			Arm_config_set.append(seed_state.jnt_val);
+			
+			Arm_config_set.append(seed_state);
 	
 	return Arm_config_set;
 
@@ -153,39 +152,56 @@ def Copy_joint_value(group_name, joint_values):
 	return Target_joint_value;
 
 def pos_test(group_handle, IK_handle):
-	
+
 	print ">>>> Generate Goal Points >>>>"
 	Goal_point_set = generate_frontface_positions(Bin_base_x = X_pos, Bin_base_y = Y_pos, Bin_base_z = Z_pos);
-	Draw_GoalPnt(Goal_point_set);
-	
+	#Draw_GoalPnt(Goal_point_set);
+
   # We have valid targets assigned
 	if len(Goal_point_set):  
-	  
+
 		print "Total target number:",len(Goal_point_set);
 		success_number = 0;
 
 		print ">>>> Generating IK solutions... >>>>"
-		config_set = Generate_configuration_set(group_handle, Goal_point_set, IK_handle)
-		
+		config_set = Generate_configuration_set(group_handle, Goal_point_set, IK_handle);
 		print "Total ",len(config_set),"Ik solutions were found";
 		
 		for count in range(0,len(config_set)):
+			group_handle.set_planner_id("RRTstarkConfigDefault");
 			config = config_set[count];
-			print ">>>> Planning Trajectory..."
+			print ">>>> Planning Trajectory for bin",config.bin_num,"...";
 			group_handle.set_start_state_to_current_state();
-			group_handle.set_joint_value_target(config);
-			plan = group_handle.plan();
+			group_handle.set_joint_value_target(config.jnt_val);
+			Pick_plan = group_handle.plan();
 			
+			planning_attemps = 1;
+			while(len(Pick_plan.joint_trajectory.points) == 0 and planning_attemps <= 5):
+				print "Planning Attempts:",planning_attemps;
+				Pick_plan = group_handle.plan();
+				planning_attemps += 1;
+
 			# Plan is valid, Save trajectory to file
-			if len(plan.joint_trajectory.points):																		
-				Save_traj(plan);
+			if len(Pick_plan.joint_trajectory.points):
+				folder_name = os.path.join(os.path.dirname(__file__), "../../trajectories/bin") + config.bin_num;
+				file_name = folder_name + "/"+ "Pick";	
+				Save_traj(Pick_plan, file_name);
 				print "Executing trajectory...";
-				group_handle.execute(plan);
+				group_handle.execute(Pick_plan);
 				rospy.sleep(5);
 				# Go back to init_pos
-				group_handle.set_start_state_to_current_state();
+				print "Try to go back to home...";
+				group_handle.set_planner_id("RRTConnectkConfigDefault");
 				group_handle.set_joint_value_target(right_arm_init_joint_value);
 				plan = group_handle.plan();
+				planning_attemps = 1;
+				while(len(plan.joint_trajectory.points) == 0 and planning_attemps <= 20):
+					group_handle.set_random_target();
+					group_handle.go();
+					print "Planning Attempts:",planning_attemps;
+					group_handle.set_joint_value_target(right_arm_init_joint_value);
+					plan = group_handle.plan();
+					planning_attemps += 1;
 				group_handle.execute(plan);
 				
 				rospy.sleep(5);
@@ -213,17 +229,19 @@ if __name__=='__main__':
 	  Z_pos = float(sys.argv[3]);  
 	else:
 	  print "No distance assigned, using default parameters: X = ",default_Bin_X," Y = ",default_Bin_Y, " Z = ", default_Bin_Z;
-	Load_Bin_model(default_Bin_X, default_Bin_Y, default_Bin_Z);
+	  Load_Bin_model(default_Bin_X, default_Bin_Y, default_Bin_Z);
 	
 	print ">>>> Set Init Position >>>>"
 	arm_left_group = moveit_commander.MoveGroupCommander("arm_left_torso");	
-	arm_left_group.set_planner_id("RRTstarkConfigDefault");
+	#arm_left_group.set_planner_id("RRTstarkConfigDefault");
+	arm_left_group.set_planner_id("RRTConnectkConfigDefault");
 	arm_left_group.allow_replanning(True);
-	arm_left_group.set_goal_tolerance(0.001);
+	#arm_left_group.set_goal_tolerance(0.001);
 
 	arm_right_group = moveit_commander.MoveGroupCommander("arm_right_torso"); 
 	arm_right_group.set_planner_id("RRTstarkConfigDefault");
-	arm_right_group.set_goal_tolerance(0.001);
+	#arm_left_group.set_planner_id("RRTConnectkConfigDefault");
+	#arm_right_group.set_goal_tolerance(0.001);
 	arm_right_group.allow_replanning(True);
 	
 	pos_init(arm_left_group, arm_right_group);

@@ -124,7 +124,7 @@ def Start_server():
     s = rospy.Service('trajectory_display', GetTrajectory, runTrajectory);	
     Load_Bin_model(X_pos, Y_pos, Z_pos); 
     # Might be a problem
-    pos_init();    
+    #pos_init();    
     print " >>>>>>>>>>>>>> Waiting For trajectory request... >>>>>>>>>>>>>>>>>>>";
     print " Request format:";
     print " Task: <Forward/Drop> + BinCode: < A ... L > + UsingTorso < y/n >";

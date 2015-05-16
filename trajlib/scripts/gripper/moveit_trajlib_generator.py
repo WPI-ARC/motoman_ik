@@ -284,6 +284,12 @@ def Generate_traj_for_key2pnt(key_config_set, goal_config_set, group_handle):
 	print "Total success number: ",success_num,"/",total_traj_num;
 
 def Generate_traj_for_home2scan(home_pos, scan_config_set, group_handle):
+
+	print "****************************************************************************";
+	print "****************************************************************************";
+	print "****************************************************************************";
+	print ">>>> Start Generating trajectory library (from HOME --> SCAN)...";
+	
 	success_num = 0;
 	print "Try to generate ", len(scan_config_set), "trajectories";
 
@@ -320,7 +326,7 @@ def Generate_traj_for_home2scan(home_pos, scan_config_set, group_handle):
 		if len(plan.joint_trajectory.points):
 			rospy.sleep(5);
 			group_handle.execute(plan);
-			folder_name = os.path.join(os.path.dirname(__file__), "../../trajectories/bin") + scan_goal_config.bin_num;
+			folder_name = os.path.join(os.path.dirname(__file__),"../../")+ "trajectories/bin" + scan_goal_config.bin_num;
 			file_name = folder_name + "/"+ "scan";
 			Save_traj(file_name,plan);
 			success_num += 1;
@@ -341,13 +347,19 @@ def Generate_traj_for_home2scan(home_pos, scan_config_set, group_handle):
 			group_handle.set_planner_id("RRTConnectkConfigDefault");
 			
 		else:
-			print "Planning from Start Position to bin",scan_goal_config.bin_num, entrance_goal_config.pos_property, " Failed!";
+			print "Planning from Start Position to bin",scan_goal_config.bin_num, scan_goal_config.pos_property, " Failed!";
 		
 		count += 1;
 
 	print "Total success number: ",success_num,"/", len(scan_config_set);
 
 def Generate_traj_for_scan2enter(scan_config_set, enter_config_set, group_handle):
+
+	print "****************************************************************************";
+	print "****************************************************************************";
+	print "****************************************************************************";
+	print ">>>> Start Generating trajectory library (from SCAN --> ENTER)...";
+	
 	success_num = 0;
 	print "Try to generate ", len(enter_config_set), "trajectories";
 	
@@ -396,8 +408,68 @@ def Generate_traj_for_scan2enter(scan_config_set, enter_config_set, group_handle
 	
 	print "Total success number: ",success_num,"/",len(enter_config_set);
 
-def Generate_traj_for_exit2home(exit_config_set,home_pos, group_handle):
-	print home_pos.jnt_val;
+def Generate_traj_for_exit2drop(exit_config_set,drop_pos, group_handle):
+
+	print "****************************************************************************";
+	print "****************************************************************************";
+	print "****************************************************************************";
+	print ">>>> Start Generating trajectory library (from EXIT --> DROP)...";
+
+	success_num = 0;
+	print "Try to generate ", len(exit_config_set), "trajectories";
+	
+	count  = 0;	
+	planning_attemps = 0;
+	while(count < len(exit_config_set)):
+		
+		exit_goal_config = exit_config_set[count];
+		
+		#if exit_goal_config.bin_num != "B":
+		#	count += 2;
+		#	continue;		
+		goal_jnt_value_msg = Generate_joint_state_msg(group_handle,exit_goal_config.jnt_val)
+		group_handle.set_joint_value_target(goal_jnt_value_msg);
+		plan = group_handle.plan();
+		planning_attemps = 1;
+		while(len(plan.joint_trajectory.points) == 0 and planning_attemps <= 20):
+			print "Try to move to bin", exit_goal_config.bin_num, exit_goal_config.pos_property, "with No.",planning_attemps, "Attempts:";
+			plan = group_handle.plan();
+			planning_attemps += 1;
+		
+		if len(plan.joint_trajectory.points):
+			group_handle.execute(plan);
+			rospy.sleep(5);	
+			print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>";
+			print "Now planning from bin",exit_goal_config.bin_num, exit_goal_config.pos_property,"to drop";
+			print "======================================================";
+			
+			drop_jnt_value_msg = Generate_joint_state_msg(group_handle,drop_pos.jnt_val)
+			group_handle.set_joint_value_target(drop_jnt_value_msg);
+			go_drop_plan = group_handle.plan();
+			planning_attemps = 1;
+			while(len(go_drop_plan.joint_trajectory.points) == 0 and planning_attemps <= 20):
+				print "Try to plan to drop pos from bin,",exit_goal_config.bin_num, exit_goal_config.pos_property;
+				go_drop_plan = group_handle.plan();
+				planning_attemps += 1;
+			if len(go_drop_plan.joint_trajectory.points) == 0 :
+				print "Now will switch to RRT* planner, with",planning_time,"Seconds to plan";
+				group_handle.set_planner_id("RRTstarkConfigDefault");
+				group_handle.set_planning_time(planning_time);
+				go_drop_plan = group_handle.plan();
+			else:
+				group_handle.execute(go_drop_plan);
+				
+			group_handle.set_planner_id("RRTConnectkConfigDefault");
+			folder_name = os.path.join(os.path.dirname(__file__), "../../trajectories/bin") + exit_goal_config.bin_num;
+			file_name = folder_name + "/"+ "drop";
+			Save_traj(file_name,go_drop_plan);
+			success_num += 1;
+		else:
+			print "Plan moving to bin",exit_goal_config.bin_num, exit_goal_config.pos_property, " Failed!";
+		
+		count += 1;
+
+	print "Total success number: ",success_num,"/", len(exit_config_set);
 
 def Generate_traj_for_pnt2pnt(goal_config_set, group_handle):
 	success_num = 0;
@@ -457,10 +529,10 @@ if __name__=='__main__':
 	
 	# Generating (ENTER / EXIT) Configuration
 	print ">>>> Generating ENTER goal Ponits..."
-	Enter_points = generate_Pick_points(Bin_base_x = X_pos, Bin_base_y = Y_pos, Bin_base_z = Z_pos, Extend_distance = 0.42, pnt_property = 'EnterPnt');
+	Enter_points = generate_Pick_points(Bin_base_x = X_pos, Bin_base_y = Y_pos, Bin_base_z = Z_pos, Extend_distance = 0.5, pnt_property = 'EnterPnt');
 	print "Total", len(Enter_points), "ENTER points";
 	print ">>>> Generating EXIT goal Ponits..."
-	Exit_points = generate_Pick_points(Bin_base_x = X_pos, Bin_base_y = Y_pos, Bin_base_z = Z_pos, Extend_distance = 0.38, pnt_property = 'ExitPnt');
+	Exit_points = generate_Pick_points(Bin_base_x = X_pos, Bin_base_y = Y_pos, Bin_base_z = Z_pos, Extend_distance = 0.39, pnt_property = 'ExitPnt');
 	print "Total", len(Exit_points), "EXIT points";
 	print ">>>> Importing (ENTER / EXIT) seed States..."
 	left_arm_Picking_seedstate_set = generate_left_arm_torso_seed_state();
@@ -473,18 +545,14 @@ if __name__=='__main__':
 	LEFT_ARM_EXIT_CONFIG_SET = Update_seedstate(Exit_points, left_arm_Picking_seedstate_set, ik, arm_left_group);
 	print "Total", len(LEFT_ARM_EXIT_CONFIG_SET), "EXIT goal states";
 	
-	print ">>>> Start Generating trajectory library (from HOME --> SCAN)...";
-	Draw_GoalPnt(Scanning_points, 0.06, [1,0,0]);
-	Generate_traj_for_home2scan(key_joint_state[0],LEFT_ARM_SCAN_CONFIG_SET,arm_left_group);
+	#Draw_GoalPnt(Scanning_points, 0.06, [1,0,0]);
+	#Generate_traj_for_home2scan(key_joint_state[0],LEFT_ARM_SCAN_CONFIG_SET,arm_left_group);
 
-	#print ">>>> Start Generating trajectory library (from SCAN --> ENTER)...";
 	#Draw_GoalPnt(Enter_points, 0.04, [1,1,0]);	
 	#Generate_traj_for_scan2enter(LEFT_ARM_SCAN_CONFIG_SET, LEFT_ARM_ENTER_CONFIG_SET,arm_left_group);	
 
-	print ">>>> Start Generating trajectory library (from EXIT --> HOME)...";
-	Generate_traj_for_exit2home()
 	Draw_GoalPnt(Exit_points, 0.04, [0,1,0]);
-	Generate_traj_for_exit2home
+	Generate_traj_for_exit2drop(LEFT_ARM_EXIT_CONFIG_SET, key_joint_state[1],arm_left_group);
 
 	#ScanPos --> PickPos Library
 	#print ">>>> Generating PICK/DROP goal Ponits..."
