@@ -165,7 +165,7 @@ def pos_test(group_handle, IK_handle):
 		print "Total ",len(config_set),"Ik solutions were found";
 
 		for count in range(0,len(config_set)):
-			#group_handle.set_planner_id("RRTstarkConfigDefault");
+			group_handle.set_planner_id("RRTstarkConfigDefault");
 			config = config_set[count];
 			print ">>>> Planning Trajectory for bin",config.bin_num,"...";
 			group_handle.set_start_state_to_current_state();
@@ -230,13 +230,11 @@ if __name__=='__main__':
 	
 	print ">>>> Set Init Position >>>>"
 	arm_left_group = moveit_commander.MoveGroupCommander("arm_left_torso");	
-	#arm_left_group.set_planner_id("RRTstarkConfigDefault");
 	arm_left_group.set_planner_id("RRTConnectkConfigDefault");
 	arm_left_group.allow_replanning(True);
 	arm_left_group.set_goal_tolerance(0.001);
 
 	arm_right_group = moveit_commander.MoveGroupCommander("arm_right_torso"); 
-	#arm_right_group.set_planner_id("RRTstarkConfigDefault");
 	arm_left_group.set_planner_id("RRTConnectkConfigDefault");
 	arm_right_group.set_goal_tolerance(0.001);
 	arm_right_group.allow_replanning(True);

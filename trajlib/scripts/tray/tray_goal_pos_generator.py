@@ -241,17 +241,17 @@ def seed_state_generator():
 	Goal1 = config_goal();
 	Goal1.bin_num = "A";
 	Goal1.jnt_val = [-2.494322617213551, 0.5236253858745525, -1.58927266388269, -1.5760277304868606, -0.8813624307206954, -0.6095330671746702, 1.8744956287775745, 2.176790229329603];
-	seed_state_set.append(Goal1);
+	#seed_state_set.append(Goal1);
 
 	Goal2 = config_goal();
 	Goal2.bin_num = "B";
 	Goal2.jnt_val = [-2.5886653285200394, -2.374620051506527, 1.8133726045423784, -1.8764388649633008, 0.9006129161380904, -0.7376122309261526, -1.8880190429049368, -1.4743091056932842];
-	seed_state_set.append(Goal2);
+	#seed_state_set.append(Goal2);
 	
 	Goal3 = config_goal();
 	Goal3.bin_num = "C";
 	Goal3.jnt_val = [ 0.10225791436341165, 0.7835974930475644, -1.6773199945660098, 1.49905452509214, 1.3427193003920177, 3.1189284019155186, -1.4674104840922055, -0.9027630644540776];
-	seed_state_set.append(Goal3);
+	#seed_state_set.append(Goal3);
 	
 	Goal4 = config_goal();
 	Goal4.bin_num = "D";
@@ -261,22 +261,22 @@ def seed_state_generator():
 	Goal5 = config_goal();
 	Goal5.bin_num = "E";
 	Goal5.jnt_val = [-2.617078223150794, -1.1700249924714978, 1.8999579332309542, -1.098277334234239, -1.7992468515858204, 2.3379186721820004, 0.4868876973376934, 2.4699605634819988];
-	seed_state_set.append(Goal5);
+	#seed_state_set.append(Goal5);
 	
 	Goal6 = config_goal();
 	Goal6.bin_num = "F";
 	Goal6.jnt_val = [0.24514562009995183, 0.6469494458388144, -1.0091301947299118, 0.9320973548089223, 1.992558226545299, 2.471672159247223, -1.5916865933053375, -0.1546854272462241];
-	seed_state_set.append(Goal6);
+	#seed_state_set.append(Goal6);
 	
 	Goal7 = config_goal();
 	Goal7.bin_num = "G";
 	Goal7.jnt_val = [-2.849710887732425, -1.8455983324002612, 0.423630514960432, -0.9114784023155666, -2.217974920357377, 1.7475936923018869, -0.7608672375929674, -1.9079153926250387];
-	seed_state_set.append(Goal7);
+	#seed_state_set.append(Goal7);
 	
 	Goal8 = config_goal();
 	Goal8.bin_num = "H";
 	Goal8.jnt_val = [-2.8232615277416735, 0.6046811180302917, -1.3199900812523193, -2.9213054464463113, -1.6166655544412436, 1.680257377517132, -1.54861721727236, -2.147159909325972];
-	seed_state_set.append(Goal8);
+	#seed_state_set.append(Goal8);
 	
 	Goal9 = config_goal();
 	Goal9.bin_num = "I";
@@ -291,11 +291,11 @@ def seed_state_generator():
 	Goal11 = config_goal();
 	Goal11.bin_num = "K";
 	Goal11.jnt_val = [0.6461938727094164, -1.3830831244973643, 1.095973358496806, 0.45177256217465794, -2.2491703946246178, 2.1547659742086287, 1.5037163344320572, -2.16208327232433];
-	seed_state_set.append(Goal11);
+	#seed_state_set.append(Goal11);
 	
 	Goal12 = config_goal();
 	Goal12.bin_num = "L";
 	Goal12.jnt_val = [-0.2858043091428526, -1.5302684719380377, 1.4227702644339293, -2.1745498037104967, 2.218658549291765, -0.6976578836771063, 0.46488220398513513, 2.908319709480955];
-	seed_state_set.append(Goal12);
+	#seed_state_set.append(Goal12);
 	
 	return seed_state_set;
