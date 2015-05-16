@@ -337,6 +337,9 @@ def Generate_traj_for_home2scan(home_pos, scan_config_set, group_handle):
 			planning_attemps = 1;
 			while(len(go_home_plan.joint_trajectory.points) == 0 and planning_attemps <= 20):
 				print "Try to get back home from bin,",scan_goal_config.bin_num, scan_goal_config.pos_property;
+				group_handle.set_random_target();
+				group_handle.go();
+				group_handle.set_joint_value_target(home_jnt_value_msg);
 				go_home_plan = group_handle.plan();
 				planning_attemps += 1;
 			if len(go_home_plan.joint_trajectory.points) == 0 :
@@ -518,7 +521,7 @@ if __name__=='__main__':
 
 	# Generating SCANNING Configuration
 	print ">>>> Generating SCANNING goal Ponits..."
-	Scanning_points = generate_Scan_points(Bin_base_x = X_pos, Bin_base_y = Y_pos, Bin_base_z = Z_pos, Extend_distance = 0.7);
+	Scanning_points = generate_Scan_points(Bin_base_x = X_pos, Bin_base_y = Y_pos, Bin_base_z = Z_pos, Extend_distance = 0.65);
 	print "Total", len(Scanning_points), "SCAN points";
 	print ">>>> Importing SCANNING seed States..."
 	left_arm_scan_seed_set = generate_left_arm_watch_config();
@@ -545,14 +548,14 @@ if __name__=='__main__':
 	LEFT_ARM_EXIT_CONFIG_SET = Update_seedstate(Exit_points, left_arm_Picking_seedstate_set, ik, arm_left_group);
 	print "Total", len(LEFT_ARM_EXIT_CONFIG_SET), "EXIT goal states";
 	
-	#Draw_GoalPnt(Scanning_points, 0.06, [1,0,0]);
-	#Generate_traj_for_home2scan(key_joint_state[0],LEFT_ARM_SCAN_CONFIG_SET,arm_left_group);
+	Draw_GoalPnt(Scanning_points, 0.06, [1,0,0]);
+	Generate_traj_for_home2scan(key_joint_state[0],LEFT_ARM_SCAN_CONFIG_SET,arm_left_group);
 
 	#Draw_GoalPnt(Enter_points, 0.04, [1,1,0]);	
-	#Generate_traj_for_scan2enter(LEFT_ARM_SCAN_CONFIG_SET, LEFT_ARM_ENTER_CONFIG_SET,arm_left_group);	
+	#Generate_traj_for_scan2enter(LEFT_ARM_SCAN_CONFIG_SET, LEFT_ARM_ENTER_CONFIG_SET,arm_left_group);
 
-	Draw_GoalPnt(Exit_points, 0.04, [0,1,0]);
-	Generate_traj_for_exit2drop(LEFT_ARM_EXIT_CONFIG_SET, key_joint_state[1],arm_left_group);
+	#Draw_GoalPnt(Exit_points, 0.04, [0,1,0]);
+	#Generate_traj_for_exit2drop(LEFT_ARM_EXIT_CONFIG_SET, key_joint_state[1],arm_left_group);
 
 	#ScanPos --> PickPos Library
 	#print ">>>> Generating PICK/DROP goal Ponits..."
