@@ -32,7 +32,7 @@ from gripper_goal_pos_generate import left_arm_torso_init_joint_value, right_arm
 # Function
 from gripper_goal_pos_generate import generate_goal_points, generate_Pick_points, generate_left_arm_watch_config, generate_Scan_points, generate_left_arm_torso_seed_state, generate_key_joint_state;
 
-planning_time = 30;
+planning_time = 60;
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../scripts"))
 from bin_loader import Load_Bin_model, X_pos, Y_pos, Z_pos;
@@ -304,10 +304,6 @@ def Generate_traj_for_home2scan(home_pos, scan_config_set, group_handle):
 		
 		scan_goal_config = scan_config_set[count];
 		
-		#if scan_goal_config.bin_num != "B":
-		#	count += 2;
-		#	continue;
-		
 		goal_jnt_value_msg = Generate_joint_state_msg(group_handle,scan_goal_config.jnt_val)
 		group_handle.set_joint_value_target(goal_jnt_value_msg);
 		
@@ -315,10 +311,10 @@ def Generate_traj_for_home2scan(home_pos, scan_config_set, group_handle):
 		print "Now planning for bin",scan_goal_config.bin_num, scan_goal_config.pos_property;
 		print "======================================================";
 		
+		group_handle.set_planner_id("RRTstarkConfigDefault");		
 		plan = group_handle.plan();
-		
 		planning_attemps = 1;
-		while(len(plan.joint_trajectory.points) == 0 and planning_attemps <= 20):
+		while(len(plan.joint_trajectory.points) == 0 and planning_attemps <= 10):
 			print "Planning Attempts:",planning_attemps;
 			plan = group_handle.plan();
 			planning_attemps += 1;
@@ -331,6 +327,7 @@ def Generate_traj_for_home2scan(home_pos, scan_config_set, group_handle):
 			Save_traj(file_name,plan);
 			success_num += 1;
 			
+			group_handle.set_planner_id("RRTConnectkConfigDefault");
 			home_jnt_value_msg = Generate_joint_state_msg(group_handle,home_pos.jnt_val)
 			group_handle.set_joint_value_target(home_jnt_value_msg);
 			go_home_plan = group_handle.plan();
@@ -343,11 +340,9 @@ def Generate_traj_for_home2scan(home_pos, scan_config_set, group_handle):
 				go_home_plan = group_handle.plan();
 				planning_attemps += 1;
 			if len(go_home_plan.joint_trajectory.points) == 0 :
-				group_handle.set_planner_id("RRTstarkConfigDefault");
 				group_handle.set_planning_time(planning_time);
 				go_home_plan = group_handle.plan();
 			group_handle.execute(go_home_plan);
-			group_handle.set_planner_id("RRTConnectkConfigDefault");
 			
 		else:
 			print "Planning from Start Position to bin",scan_goal_config.bin_num, scan_goal_config.pos_property, " Failed!";
@@ -426,7 +421,7 @@ def Generate_traj_for_exit2drop(exit_config_set,drop_pos, group_handle):
 	while(count < len(exit_config_set)):
 		
 		exit_goal_config = exit_config_set[count];
-		
+		group_handle.set_planner_id("RRTConnectkConfigDefault");
 		#if exit_goal_config.bin_num != "B":
 		#	count += 2;
 		#	continue;		
@@ -445,7 +440,7 @@ def Generate_traj_for_exit2drop(exit_config_set,drop_pos, group_handle):
 			print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>";
 			print "Now planning from bin",exit_goal_config.bin_num, exit_goal_config.pos_property,"to drop";
 			print "======================================================";
-			
+			group_handle.set_planner_id("RRTstarkConfigDefault");
 			drop_jnt_value_msg = Generate_joint_state_msg(group_handle,drop_pos.jnt_val)
 			group_handle.set_joint_value_target(drop_jnt_value_msg);
 			go_drop_plan = group_handle.plan();
@@ -455,21 +450,18 @@ def Generate_traj_for_exit2drop(exit_config_set,drop_pos, group_handle):
 				go_drop_plan = group_handle.plan();
 				planning_attemps += 1;
 			if len(go_drop_plan.joint_trajectory.points) == 0 :
-				print "Now will switch to RRT* planner, with",planning_time,"Seconds to plan";
-				group_handle.set_planner_id("RRTstarkConfigDefault");
+				#print "Now will switch to RRT* planner, with",planning_time,"Seconds to plan";
 				group_handle.set_planning_time(planning_time);
 				go_drop_plan = group_handle.plan();
 			else:
 				group_handle.execute(go_drop_plan);
 				
-			group_handle.set_planner_id("RRTConnectkConfigDefault");
 			folder_name = os.path.join(os.path.dirname(__file__), "../../trajectories/bin") + exit_goal_config.bin_num;
 			file_name = folder_name + "/"+ "drop";
 			Save_traj(file_name,go_drop_plan);
 			success_num += 1;
 		else:
 			print "Plan moving to bin",exit_goal_config.bin_num, exit_goal_config.pos_property, " Failed!";
-		
 		count += 1;
 
 	print "Total success number: ",success_num,"/", len(exit_config_set);
@@ -485,6 +477,8 @@ if __name__=='__main__':
 	moveit_commander.roscpp_initialize(sys.argv);
 	rospy.init_node('Trajectory generator', anonymous=True);
 
+	remove_object();
+	
 	arm_left_group = moveit_commander.MoveGroupCommander("arm_left_torso");
 	arm_right_group = moveit_commander.MoveGroupCommander("arm_right_torso");
 	arm_left_group.allow_replanning(True);
@@ -516,12 +510,13 @@ if __name__=='__main__':
 	rospy.wait_for_service('compute_ik');
 	ik = rospy.ServiceProxy("compute_ik", GetPositionIK);
 
+	
 	print ">>>> Importing Init / Drop configurations..."
 	key_joint_state = generate_key_joint_state(arm_left_group.get_name());
 
 	# Generating SCANNING Configuration
 	print ">>>> Generating SCANNING goal Ponits..."
-	Scanning_points = generate_Scan_points(Bin_base_x = X_pos, Bin_base_y = Y_pos, Bin_base_z = Z_pos, Extend_distance = 0.6);
+	Scanning_points = generate_Scan_points(Bin_base_x = X_pos, Bin_base_y = Y_pos, Bin_base_z = Z_pos, Extend_distance = 0.65);
 	print "Total", len(Scanning_points), "SCAN points";
 	print ">>>> Importing SCANNING seed States..."
 	left_arm_scan_seed_set = generate_left_arm_watch_config();
@@ -554,8 +549,8 @@ if __name__=='__main__':
 	#Draw_GoalPnt(Enter_points, 0.04, [1,1,0]);	
 	#Generate_traj_for_scan2enter(LEFT_ARM_SCAN_CONFIG_SET, LEFT_ARM_ENTER_CONFIG_SET,arm_left_group);
 
-	#Draw_GoalPnt(Exit_points, 0.04, [0,1,0]);
-	#Generate_traj_for_exit2drop(LEFT_ARM_EXIT_CONFIG_SET, key_joint_state[1],arm_left_group);
+	Draw_GoalPnt(Exit_points, 0.04, [0,1,0]);
+	Generate_traj_for_exit2drop(LEFT_ARM_EXIT_CONFIG_SET, key_joint_state[1],arm_left_group);
 
 	#ScanPos --> PickPos Library
 	#print ">>>> Generating PICK/DROP goal Ponits..."

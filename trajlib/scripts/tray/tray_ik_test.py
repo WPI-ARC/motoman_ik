@@ -34,7 +34,7 @@ default_Bin_Z = Z_pos;
 left_arm_init_joint_value = arm_left_home;
 right_arm_init_joint_value = arm_right_home;
 
-Planning_time = 60;
+Planning_time = 600;
 
 topic = '/visualization_marker';
 marker_publisher = rospy.Publisher(topic, Marker);
@@ -153,7 +153,6 @@ def pos_test(group_handle, IK_handle):
 	print ">>>> Generate Goal Points >>>>"
 	Goal_point_set = generate_frontface_positions(Bin_base_x = X_pos, Bin_base_y = Y_pos, Bin_base_z = Z_pos);
 	#Draw_GoalPnt(Goal_point_set);
-
   # We have valid targets assigned
 	if len(Goal_point_set):  
 
@@ -192,13 +191,13 @@ def pos_test(group_handle, IK_handle):
 				group_handle.set_joint_value_target(right_arm_init_joint_value);
 				plan = group_handle.plan();
 				planning_attemps = 1;
-				while(len(plan.joint_trajectory.points) == 0 and planning_attemps <= 20):
+				while(len(plan.joint_trajectory.points) == 0):
 					group_handle.set_random_target();
 					group_handle.go();
 					print "Planning Attempts:",planning_attemps;
 					group_handle.set_joint_value_target(right_arm_init_joint_value);
 					plan = group_handle.plan();
-					planning_attemps += 1;
+					
 				group_handle.execute(plan);
 				
 				rospy.sleep(5);
