@@ -124,7 +124,7 @@ def goal_states(bin_num):
 	
 	return jnt_val
 
-def scoop_procedure(arm_right_group):
+def scoop_procedure(arm_right_group, bin_num):
 	print "Executing Scoop..."
 
 	scene.remove_world_object(
@@ -132,18 +132,24 @@ def scoop_procedure(arm_right_group):
 
 	poses = [arm_right_group.get_current_pose().pose]
 
-	# BIN C
-	poses[-1].position.x = 0.337514
-	# poses[-1].position.y = -0.196057
-	poses[-1].position.z = 1.63967
-	poses[-1].orientation.x = -0.293131
-	poses[-1].orientation.y = -0.512971
-	poses[-1].orientation.z = 0.403546
-	poses[-1].orientation.w = 0.698631
-	poses.append(deepcopy(poses[-1]))
-
-	# BIN B
-	# poses[-1].position.y += 0.270857
+	if( bin_num == "C"):
+		# BIN C
+		poses[-1].position.x = 0.337514
+		poses[-1].position.y = -0.196057
+		poses[-1].position.z = 1.63967
+		poses[-1].orientation.x = -0.293131
+		poses[-1].orientation.y = -0.512971
+		poses[-1].orientation.z = 0.403546
+		poses[-1].orientation.w = 0.698631
+	elif ( bin_num == "B"):
+		# BIN B
+		poses[-1].position.x = 0.337514
+		poses[-1].position.y += 0.310857
+		poses[-1].position.z = 1.63967
+		poses[-1].orientation.x = -0.293131
+		poses[-1].orientation.y = -0.512971
+		poses[-1].orientation.z = 0.403546
+		poses[-1].orientation.w = 0.698631
 	# BIN A
 	# poses[-1].position.y += 0.270857
 	# BIN F
@@ -153,46 +159,83 @@ def scoop_procedure(arm_right_group):
 
 
 	start_pose = [arm_right_group.get_current_pose().pose]
-	# BIN B
-	# start_pose[-1].position.y += 0.270857
+
+	if (bin_num == "C"):
+		# BIN C
+		start_pose[-1].position.x = 0.337514
+		start_pose[-1].position.y = -0.196057
+		start_pose[-1].position.z = 1.63967
+		start_pose[-1].orientation.x = -0.293131
+		start_pose[-1].orientation.y = -0.512971
+		start_pose[-1].orientation.z = 0.403546
+		start_pose[-1].orientation.w = 0.698631
+	elif (bin_num == "B"):
+		# BIN B
+		start_pose[-1].position.x = 0.337514
+		start_pose[-1].position.y += 0.310857
+		start_pose[-1].position.z = 1.63967
+		start_pose[-1].orientation.x = -0.293131
+		start_pose[-1].orientation.y = -0.512971
+		start_pose[-1].orientation.z = 0.403546
+		start_pose[-1].orientation.w = 0.698631
+
 	# BIN A
 	# start_pose[-1].position.y += 0.541714
 
 	
-	# BIN C
-	start_pose[-1].position.x = 0.337514
-	# start_pose[-1].position.y = -0.196057
-	start_pose[-1].position.z = 1.63967
-	start_pose[-1].orientation.x = -0.293131
-	start_pose[-1].orientation.y = -0.512971
-	start_pose[-1].orientation.z = 0.403546
-	start_pose[-1].orientation.w = 0.698631
+
 	# BIN F
 	# start_pose[-1].position.z = 1.39467
 
+	if (bin_num == "B"):
+		poses[-1].position.x = 0.37066
+		poses[-1].position.y += 0.14335
+		poses[-1].position.z -= 0.0276
+		poses[-1].orientation.x = 0.19924 
+		poses[-1].orientation.y = -0.69387
+		poses[-1].orientation.z = -0.14743
+		poses[-1].orientation.w = 0.6761
+		poses.append(deepcopy(poses[-1]))
 
-	poses[-1].position.x = 0.37066
-	poses[-1].position.y += 0.14335
-	poses[-1].position.z -= 0.0276
-	poses[-1].orientation.x = 0.19924 
-	poses[-1].orientation.y = -0.69387
-	poses[-1].orientation.z = -0.14743
-	poses[-1].orientation.w = 0.6761
-	poses.append(deepcopy(poses[-1]))
-
-	poses[-1].position.x += 0.12
-	poses[-1].position.y += 0.03
-	poses.append( deepcopy( poses[-1] ) )
+		poses[-1].position.x += 0.12
+		poses[-1].position.y += 0.03
+		poses.append( deepcopy( poses[-1] ) )
         
-	poses[-1].position.x += 0.25
-	poses[-1].position.y += 0.01
-	poses.append( deepcopy( poses[-1] ) )
+		poses[-1].position.x += 0.25
+		poses[-1].position.y += 0.01
+		poses.append( deepcopy( poses[-1] ) )
 
-	poses[-1].position.y -= 0.10
-	poses.append( deepcopy( poses[-1] ) )
+		poses[-1].position.y -= 0.10
+		poses.append( deepcopy( poses[-1] ) )
 
-	poses[-1].position.x -= 0.4
-	poses.append(deepcopy(poses[-1]))
+		poses[-1].position.x -= 0.4
+		poses.append(deepcopy(poses[-1]))		
+
+	elif (bin_num == "C"):
+		poses[-1].position.x = 0.37066
+		poses[-1].position.y += 0.04
+		poses[-1].position.z -= 0.0276
+		poses[-1].orientation.x = 0.19924 
+		poses[-1].orientation.y = -0.69387
+		poses[-1].orientation.z = -0.14743
+		poses[-1].orientation.w = 0.6761
+		poses.append(deepcopy(poses[-1]))
+
+		poses[-1].position.x += 0.12
+		poses[-1].position.y -= 0.03
+		poses.append( deepcopy( poses[-1] ) )
+        
+		poses[-1].position.x += 0.25
+		poses[-1].position.y -= 0.01
+		poses.append( deepcopy( poses[-1] ) )
+
+		poses[-1].position.y += 0.08
+		poses.append( deepcopy( poses[-1] ) )
+
+		poses[-1].position.x -= 0.4
+		poses.append(deepcopy(poses[-1]))	
+
+
 
 	# poses[-1].position.x = 0.337514
 	# poses[-1].position.y = -0.196057
@@ -208,16 +251,16 @@ def scoop_procedure(arm_right_group):
 	poses.append(deepcopy(poses[-1]))
 
 	# Down
-	poses[-1].position.z += -0.0555
+	poses[-1].position.z += -0.0355
 	poses.append(deepcopy(poses[-1]))
 
 	# Scoop In
 	poses[-1].position.x += 0.174
-	poses[-1].position.z += -0.0810
+	poses[-1].position.z += -0.0710
 	poses.append(deepcopy(poses[-1]))
 
 	#Push In
-	poses[-1].position.x += 0.1323
+	poses[-1].position.x += 0.1523
 	poses.append(deepcopy(poses[-1]))
 
 	#Tilt Up
@@ -244,58 +287,12 @@ def scoop_procedure(arm_right_group):
 
 	#Up and Out
 	poses[-1].position.x += -0.4586
-	poses[-1].position.z += 0.05
+	poses[-1].position.z += 0.03
 	poses.append(deepcopy(poses[-1]))
 
-	poses[-1].position.z += 0.05
+	poses[-1].position.z += 0.03
 	poses.append(deepcopy(poses[-1]))
 
-	# # #Up and Out
-	# # poses[-1].position.y += -0.15
-	# # poses[-1].position.z += 0.05
-	# # poses.append(deepcopy(poses[-1]))
-
-	# # #Up and Out
-	# # poses[-1].position.z = 0.666238
-	# # poses.append(deepcopy(poses[-1]))
-
-	# #Go to Order bin
-
-	# poses[-1].position.x = 0.44726
-	# poses[-1].position.y = -0.373801
-	# poses[-1].position.z = 0.666238
-	# # poses[-1].orientation.x = -0.165242
-	# # poses[-1].orientation.y = 0.750189
-	# # poses[-1].orientation.z = -0.604833
-	# # poses[-1].orientation.w = -0.209972
-	# # poses.append(deepcopy(poses[-1]))
-
-	# # poses[-1].position.x = 0.327324
-	# # poses[-1].position.y = -0.446507
-	# # poses[-1].position.z = 0.62792
-	# # poses[-1].orientation.x = -0.165242
-	# # poses[-1].orientation.y = 0.750189
-	# # poses[-1].orientation.z = -0.604833
-	# # poses[-1].orientation.w = -0.209972
-	# poses[-1].orientation.x = 0.782675
-	# poses[-1].orientation.y = 0.00761138
-	# poses[-1].orientation.z = 0.0175033
-	# poses[-1].orientation.w = 0.622138
-	# poses.append(deepcopy(poses[-1]))
-
-	# #Dump Item
-	# poses[-1].position.x = 0.460695
-	# poses[-1].position.y = -0.363952
-	# poses[-1].position.z = 0.619981
-	# # poses[-1].orientation.x =  0.11222
-	# # poses[-1].orientation.y = -0.48567
-	# # poses[-1].orientation.z =  0.840624
-	# # poses[-1].orientation.w = 0.211856
-	# poses[-1].orientation.x = 0.52439
-	# poses[-1].orientation.y = 0.00122736
-	# poses[-1].orientation.z = 0.0189816
-	# poses[-1].orientation.w = 0.851266
-	# poses.append(deepcopy(poses[-1]))
 
 	# To right side of shelf
 	poses[-1].position.y = -0.602322
@@ -317,14 +314,6 @@ def scoop_procedure(arm_right_group):
 	poses.append(deepcopy(poses[-1]))
 
 	#Tilt little by little
-	# poses[-1].position.x = 0.482178
-	# poses[-1].position.y = -0.355627
-	# poses[-1].position.z = 0.706449
-	# poses[-1].orientation.x = -0.179646
-	# poses[-1].orientation.y = 0.685765
-	# poses[-1].orientation.z = -0.68407
-	# poses[-1].orientation.w = -0.17176
-	# poses.append(deepcopy(poses[-1]))
 
 	poses[-1].position.x = 0.472985 #0.482178
 	poses[-1].position.y = -0.351667 #-0.335627
@@ -353,15 +342,6 @@ def scoop_procedure(arm_right_group):
 	poses[-1].orientation.w = 0.209268
 	poses.append(deepcopy(poses[-1]))
 
-	# poses[-1].position.x = 0.307497
-	# poses[-1].position.y = -0.196086
-	# poses[-1].position.z = 1.63966
-	# poses[-1].orientation.x = -0.197627
-	# poses[-1].orientation.y = 0.727435
-	# poses[-1].orientation.z = -0.627108
-	# poses[-1].orientation.w = -0.19626
-	# poses.append(deepcopy(poses[-1]))
-
 	print "Planning Cartesian Path Dump....."
 
 	(plan, fraction) = arm_right_group.compute_cartesian_path(
@@ -374,62 +354,6 @@ def scoop_procedure(arm_right_group):
 	Save_traj("Dump",plan)
 
 	rospy.sleep(25)
-
-	# ocm = OrientationConstraint()
-	# ocm.link_name = "arm_right_link_7_t"
-	# ocm.header.frame_id = "base_link"
-	# ocm.orientation.x = -0.19713
-	# ocm.orientation.y = 0.72862
-	# ocm.orientation.z = -0.625746
-	# ocm.orientation.w = -0.196711
-	# ocm.absolute_x_axis_tolerance = 0.8
-	# ocm.absolute_y_axis_tolerance = 0.8
-	# ocm.absolute_z_axis_tolerance = 3.14
-	# ocm.weight = 1.0
-
-	# ocm1 = OrientationConstraint()
-	# ocm1.link_name = "arm_right_link_6_b"
-	# ocm1.header.frame_id = "base_link"
-	# ocm1.orientation.x = 0.0310163
-	# ocm1.orientation.y = 0.981038
-	# ocm1.orientation.z = 0.0634537
-	# ocm1.orientation.w = 0.180486
-	# ocm1.absolute_x_axis_tolerance = 0.8
-	# ocm1.absolute_y_axis_tolerance = 0.8
-	# ocm1.absolute_z_axis_tolerance = 3.14
-	# ocm1.weight = 10.0
-
-	# test_constraints = Constraints()
-	# test_constraints.orientation_constraints.append(ocm);
-	# # test_constraints.orientation_constraints.append(ocm1);
-	
-	# arm_right_group = moveit_commander.MoveGroupCommander("arm_right_torso")
-	# arm_right_group.set_planner_id("RRTConnectkConfigDefault")
-	# arm_right_group.set_planning_time(15)
-	# arm_right_group.set_path_constraints(test_constraints);
-
-	# print "Moving Right arm to Home...."
-	# group_variable_values = arm_right_group.get_current_joint_values()
-	# group_variable_values[0] =  0.015688767619205148
-	# group_variable_values[1] = -1.9545450117108234
-	# group_variable_values[2] = -1.0686990738249256
-	# group_variable_values[3] = 0.11172413935581199
-	# group_variable_values[4] = 0.28405839478677736
-	# group_variable_values[5] = 0.20591506084694625
-	# group_variable_values[6] = 1.899920730961603
-	# group_variable_values[7] = -0.6256419989314036
-	# print group_variable_values
-
-	# arm_right_group.set_joint_value_target(group_variable_values)
-	# print "done 2"
-	# # plan_home = arm_right_group.plan()
-	# print "done 3"
-	# # arm_right_group.execute(plan_home)
-	# print "done 4"
-	# rospy.sleep(5)
-
-	# print "Moved Right arm to Home.!"
-	# poses = [arm_right_group.get_current_pose().pose]
 
 	#Lift tray up
 	poses1 = [arm_right_group.get_current_pose().pose]
@@ -638,22 +562,9 @@ if __name__ == '__main__':
 		add_collision_box()
 		add_dropOff()
 
-		# arm_right_init = [0.0, -1.0030564513590334, -1.49978651413566, 0.457500317369117, -2.1772162870743323, 0.4509681667487428, -1.2043397683221861, -1.5581499385881046];
-
-		# p = plan_left_to_home()
-		# p1 = plan_right_to_home() 
-
-		# arm_right_group.set_planning_time(120)
-		# group_variable_values = goal_states(bin_num)
-		# arm_right_group.set_joint_value_target(group_variable_values)
-
-		# plan1 = arm_right_group.plan()
-		# arm_right_group.execute(plan1)
-		# rospy.sleep(5)
-
 		print ">>>>>>>>>> Testing <<<<<<<<<<"
 
-		scoop_procedure(arm_right_group)
+		scoop_procedure(arm_right_group,bin_num)
 
 		print "********** Test End **********"
 		moveit_commander.roscpp_shutdown()
