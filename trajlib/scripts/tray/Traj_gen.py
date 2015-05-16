@@ -132,16 +132,49 @@ def scoop_procedure(arm_right_group):
 
 	poses = [arm_right_group.get_current_pose().pose]
 
+	# BIN C
+	poses[-1].position.x = 0.337514
+	# poses[-1].position.y = -0.196057
+	poses[-1].position.z = 1.63967
+	poses[-1].orientation.x = -0.293131
+	poses[-1].orientation.y = -0.512971
+	poses[-1].orientation.z = 0.403546
+	poses[-1].orientation.w = 0.698631
+	poses.append(deepcopy(poses[-1]))
+
+	# BIN B
 	# poses[-1].position.y += 0.270857
-	# poses.append(deepcopy(poses[-1]))
+	# BIN A
+	# poses[-1].position.y += 0.270857
+	# BIN F
+	# poses[-1].position.z = 1.39467
+	poses.append(deepcopy(poses[-1]))
+
+
 
 	start_pose = [arm_right_group.get_current_pose().pose]
+	# BIN B
 	# start_pose[-1].position.y += 0.270857
+	# BIN A
+	# start_pose[-1].position.y += 0.541714
+
+	
+	# BIN C
+	start_pose[-1].position.x = 0.337514
+	# start_pose[-1].position.y = -0.196057
+	start_pose[-1].position.z = 1.63967
+	start_pose[-1].orientation.x = -0.293131
+	start_pose[-1].orientation.y = -0.512971
+	start_pose[-1].orientation.z = 0.403546
+	start_pose[-1].orientation.w = 0.698631
+	# BIN F
+	# start_pose[-1].position.z = 1.39467
+
 
 	poses[-1].position.x = 0.37066
 	poses[-1].position.y += 0.14335
 	poses[-1].position.z -= 0.0276
-	poses[-1].orientation.x = 0.19924
+	poses[-1].orientation.x = 0.19924 
 	poses[-1].orientation.y = -0.69387
 	poses[-1].orientation.z = -0.14743
 	poses[-1].orientation.w = 0.6761
