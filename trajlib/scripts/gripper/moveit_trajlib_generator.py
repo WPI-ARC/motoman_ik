@@ -521,7 +521,7 @@ if __name__=='__main__':
 
 	# Generating SCANNING Configuration
 	print ">>>> Generating SCANNING goal Ponits..."
-	Scanning_points = generate_Scan_points(Bin_base_x = X_pos, Bin_base_y = Y_pos, Bin_base_z = Z_pos, Extend_distance = 0.65);
+	Scanning_points = generate_Scan_points(Bin_base_x = X_pos, Bin_base_y = Y_pos, Bin_base_z = Z_pos, Extend_distance = 0.6);
 	print "Total", len(Scanning_points), "SCAN points";
 	print ">>>> Importing SCANNING seed States..."
 	left_arm_scan_seed_set = generate_left_arm_watch_config();
