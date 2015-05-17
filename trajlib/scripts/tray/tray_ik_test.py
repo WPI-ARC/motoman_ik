@@ -14,6 +14,7 @@ from moveit_msgs.srv import GetPositionIK, GetPositionIKRequest
 
 import moveit_commander
 import moveit_msgs.msg
+		
 from moveit_msgs.msg import PositionIKRequest, RobotState
 from moveit_msgs.msg import RobotTrajectory
 import geometry_msgs.msg
@@ -34,7 +35,7 @@ default_Bin_Z = Z_pos;
 left_arm_init_joint_value = arm_left_home;
 right_arm_init_joint_value = arm_right_home;
 
-Planning_time = 30;
+Planning_time = 60;
 
 topic = '/visualization_marker';
 marker_publisher = rospy.Publisher(topic, Marker);
@@ -80,8 +81,8 @@ def find_IK_solution(ik, target, seed, group_name):
     return response
 
 def pos_init(left_arm_group_handle, right_arm_group_handle):
-	right_arm_group_handle.go(right_arm_init_joint_value);	
-	left_arm_group_handle.go(left_arm_init_joint_value);
+	go_home(left_arm_group_handle);
+	go_home(right_arm_group_handle);
 
 def Save_traj(plan, file_name):			
 
@@ -126,7 +127,7 @@ def Generate_configuration_set(group_handle, pose_target_set, ik_handle):
 			#print ik_solution;
 			#Arm_config_set.append(ik_solution);
 			
-			Arm_config_set.append(seed_state);
+		Arm_config_set.append(seed_state);
 	
 	return Arm_config_set;
 
@@ -147,7 +148,24 @@ def Copy_joint_value(group_name, joint_values):
 		Target_joint_value = joint_values[20:27];
 
 	return Target_joint_value;
-
+	
+def go_home(group_handle):
+	print "Try to go back to home...";
+	if group_handle.get_name() == "arm_right_torso":
+		group_handle.set_joint_value_target(right_arm_init_joint_value);
+	else:
+		group_handle.set_joint_value_target(left_arm_init_joint_value);
+	group_handle.set_planner_id("RRTConnectkConfigDefault");
+	plan = group_handle.plan();
+	planning_attemps = 1;
+	while(len(plan.joint_trajectory.points) == 0):
+		group_handle.set_random_target();
+		group_handle.go();
+		print "Planning Attempts:",planning_attemps;
+		group_handle.set_joint_value_target(right_arm_init_joint_value);
+		plan = group_handle.plan();					
+	group_handle.execute(plan);
+	
 def pos_test(group_handle, IK_handle):
 
 	print ">>>> Generate Goal Points >>>>"
@@ -165,8 +183,8 @@ def pos_test(group_handle, IK_handle):
 
 		for count in range(0,len(config_set)):
 			
-			group_handle.set_planner_id("RRTstarkConfigDefault");
-			#group_handle.set_planner_id("RRTConnectkConfigDefault");
+			#group_handle.set_planner_id("RRTstarkConfigDefault");
+			group_handle.set_planner_id("RRTConnectkConfigDefault");
 			
 			config = config_set[count];
 			print ">>>> Planning Trajectory for bin",config.bin_num,"...";
@@ -175,7 +193,7 @@ def pos_test(group_handle, IK_handle):
 			Pick_plan = group_handle.plan();
 			
 			planning_attemps = 1;
-			while(len(Pick_plan.joint_trajectory.points) == 0 and planning_attemps <= 5):
+			while(len(Pick_plan.joint_trajectory.points) == 0 and planning_attemps <= 100):
 				print "Planning Attempts:",planning_attemps;
 				Pick_plan = group_handle.plan();
 				planning_attemps += 1;
@@ -189,19 +207,7 @@ def pos_test(group_handle, IK_handle):
 				group_handle.execute(Pick_plan);
 				rospy.sleep(5);
 				# Go back to init_pos
-				print "Try to go back to home...";
-				group_handle.set_planner_id("RRTConnectkConfigDefault");
-				group_handle.set_joint_value_target(right_arm_init_joint_value);
-				plan = group_handle.plan();
-				planning_attemps = 1;
-				while(len(plan.joint_trajectory.points) == 0):
-					group_handle.set_random_target();
-					group_handle.go();
-					print "Planning Attempts:",planning_attemps;
-					group_handle.set_joint_value_target(right_arm_init_joint_value);
-					plan = group_handle.plan();
-					
-				group_handle.execute(plan);
+				go_home(group_handle);
 				
 				rospy.sleep(5);
 			else:

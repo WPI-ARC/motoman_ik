@@ -47,7 +47,8 @@ def Load_Bin_model(bin_x, bin_y, bin_z, CheckCollision = True):
 			scene.add_box(
 				name="shelfcollision_model",
 				pose=box_pose,
-				size=(0.96, 0.96, 2.5));
+				#size=(0.96, 0.96, 2.5));
+				size=(0.90, 0.90, 2.5));
 		
         
 	except rospy.ROSInterruptException:
