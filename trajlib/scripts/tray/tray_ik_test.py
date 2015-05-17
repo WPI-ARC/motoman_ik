@@ -281,7 +281,7 @@ if __name__=='__main__':
 	arm_right_group.set_goal_tolerance(0.01);
 	arm_right_group.allow_replanning(True);
 	
-	#pos_init(arm_left_group, arm_right_group);
+	pos_init(arm_left_group, arm_right_group);
 	
 	arm_left_group.set_planning_time(Planning_time);
 	arm_right_group.set_planning_time(Planning_time);
@@ -291,18 +291,20 @@ if __name__=='__main__':
 	ik = rospy.ServiceProxy("compute_ik", GetPositionIK);
 
 	print ">>>> Start Testing >>>>"
-	#pos_test(arm_right_group, ik);
+	pos_test(arm_right_group, ik);
 	
 	# A		
-	rotate_config = [2.608074188232422, -0.29658669233322144, 
-					 0.8934586644172668, 1.7289633750915527, 
-					 1.573803424835205, 1.2867212295532227, 
-					 1.4699939489364624, 1.88583398];
+	#rotate_config = [2.608074188232422, -0.29658669233322144, 0.8934586644172668, 1.7289633750915527, 1.573803424835205, 1.2867212295532227, 1.4699939489364624, 1.88583398];
 
 	# G
 	#rotate_config = [2.776894014401466,-0.639702221407827, 1.4694694444791978, -0.8327041049818699, 2.18906750147502, 2.2708616336783396, -1.232302856727945, 1.7149700732880278];
 	
-	rotation_path_generate(arm_right_group, rotate_config);
+	# D
+	#rotate_config = [2.905459411335167, 1.9791786685536243, 0.44221823283736134, -0.15580747083376772, 2.2349300507549397, 1.8704137525544255, 1.8999704363459953, 2.0352516343894233];
+	
+	# E
+	# rotate_config = [2.89667019844055176, 1.4224945306777954, -0.7801656126976013, -0.2995363175868988, 2.195582151412964, 1.864424467086792, 1.6602683067321777, −2.161652517];
+	# rotation_path_generate(arm_right_group, rotate_config);
 	
 	print "**** Test End ****"
 	moveit_commander.roscpp_shutdown()

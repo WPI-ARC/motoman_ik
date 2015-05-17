@@ -562,7 +562,7 @@ if __name__=='__main__':
 	#Draw_GoalPnt(Enter_points, 0.04, [1,1,0]);	
 	#Generate_traj_for_scan2enter(LEFT_ARM_SCAN_CONFIG_SET, LEFT_ARM_ENTER_CONFIG_SET,arm_left_group);
 
-	Add_collision_ball();
+	#Add_collision_ball();
 	Draw_GoalPnt(Exit_points, 0.04, [0,1,0]);
 	Generate_traj_for_exit2drop(LEFT_ARM_EXIT_CONFIG_SET, key_joint_state[1],arm_left_group);
 	remove_object();
