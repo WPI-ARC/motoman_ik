@@ -34,7 +34,7 @@ default_Bin_Z = Z_pos;
 left_arm_init_joint_value = arm_left_home;
 right_arm_init_joint_value = arm_right_home;
 
-Planning_time = 600;
+Planning_time = 30;
 
 topic = '/visualization_marker';
 marker_publisher = rospy.Publisher(topic, Marker);
@@ -164,7 +164,10 @@ def pos_test(group_handle, IK_handle):
 		print "Total ",len(config_set),"Ik solutions were found";
 
 		for count in range(0,len(config_set)):
+			
 			group_handle.set_planner_id("RRTstarkConfigDefault");
+			#group_handle.set_planner_id("RRTConnectkConfigDefault");
+			
 			config = config_set[count];
 			print ">>>> Planning Trajectory for bin",config.bin_num,"...";
 			group_handle.set_start_state_to_current_state();

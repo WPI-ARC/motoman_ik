@@ -43,7 +43,7 @@ from moveit_msgs.msg import TrajectoryConstraints;
 left_arm_init_joint_value = arm_left_home;
 right_arm_init_joint_value = arm_right_home;
 
-Planning_time = 600;
+Planning_time = 60;
 
 topic = '/visualization_marker';
 marker_publisher = rospy.Publisher(topic, Marker);
@@ -231,7 +231,7 @@ def setJointConstraints(goal_config, group_handle):
 def setOrientationConstraints(qw,qx,qy,qz, group_handle,weight):
 	
 	orient_constrain = OrientationConstraint();
-	
+	orient_constrain.header.frame_id = "base_link";
 	orient_constrain.link_name = group_handle.get_end_effector_link();
 	
 	orient_constrain.orientation = Quaternion();
@@ -240,9 +240,9 @@ def setOrientationConstraints(qw,qx,qy,qz, group_handle,weight):
 	orient_constrain.orientation.y = qy;
 	orient_constrain.orientation.z = qz;
 	
-	orient_constrain.absolute_x_axis_tolerance = 0.001;
-	orient_constrain.absolute_y_axis_tolerance = 0.001;
-	orient_constrain.absolute_z_axis_tolerance = pi;
+	orient_constrain.absolute_x_axis_tolerance = 0.01;
+	orient_constrain.absolute_y_axis_tolerance = 0.01;
+	orient_constrain.absolute_z_axis_tolerance = 2*pi;
 	orient_constrain.weight = weight;
 
 	return orient_constrain;
@@ -329,7 +329,8 @@ if __name__=='__main__':
 	arm_left_group.set_goal_tolerance(0.001);
 
 	arm_right_group = moveit_commander.MoveGroupCommander("arm_right_torso"); 
-	arm_left_group.set_planner_id("RRTConnectkConfigDefault");
+	arm_right_group.set_planner_id("RRTstarkConfigDefault");
+	#arm_right_group.set_planner_id("RRTConnectkConfigDefault");
 	arm_right_group.set_goal_tolerance(0.001);
 	arm_right_group.allow_replanning(True);	
 	#pos_init(arm_left_group, arm_right_group);	
@@ -344,18 +345,18 @@ if __name__=='__main__':
 	#pos_test(arm_right_group, ik);
 	motoman_sda10 = moveit_commander.RobotCommander();
 	start_state = motoman_sda10.get_current_state();
-	goal_state = [0.0, -0.5263604893956656, 1.6500163692522856, -0.5515519107755565, 1.1627465887780024, 2.26224630000971, -0.7075710170641819, 0.7939218847936328]
+	goal_state = [0.0, -0.7846225685744268, -0.44391901469000256, 2.0332152364478326, -0.9467777692180627, 1.094702439784921, -1.454522631785723, 2.482112603511986]
 	
 	#constraint_planner(start_state, goal_state, arm_right_group, "RRTConnectkConfigDefault", 15, 10);
-	des_w = -0.070099;
-	des_x = 0.41382;
-	des_y = -0.57302;
-	des_z = 0.70391;
+	# w 0.70683; x 0.00024277; y 0.00024296; z 0.70739
+	# des_w = 0.68323;	des_x = -0.68245;	des_y = -0.18413;	des_z = -0.18316;
 	orient_constraint = setOrientationConstraints(des_w, des_x, des_y, des_z, arm_right_group, weight = 1.0);
 	test_constraints = Constraints();
 	test_constraints.orientation_constraints.append(orient_constraint);
 	arm_right_group.set_path_constraints(test_constraints);
-	arm_right_group.set_random_target();
+	
+	test_jnt_value_msg = Generate_joint_state_msg(arm_right_group,goal_state)
+	arm_right_group.set_joint_value_target(test_jnt_value_msg);
 	arm_right_group.plan();
 	
 	print "**** Test End ****"
