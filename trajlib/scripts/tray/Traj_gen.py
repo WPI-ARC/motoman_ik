@@ -127,220 +127,291 @@ def goal_states(bin_num):
 def scoop_procedure(arm_right_group, bin_num):
 	print "Executing Scoop..."
 
+	leftOffset = -0.001
+	middleOffset = -0.002
+	rightOffset = 0.000
+
 	scene.remove_world_object(
 			name="bin");
 
 	poses = [arm_right_group.get_current_pose().pose]
 
-	if( bin_num == "C"):
-		# BIN C
-		poses[-1].position.x = 0.337514
-		poses[-1].position.y = -0.196057
-		poses[-1].position.z = 1.63967
-		poses[-1].orientation.x = -0.293131
-		poses[-1].orientation.y = -0.512971
-		poses[-1].orientation.z = 0.403546
-		poses[-1].orientation.w = 0.698631
-	elif ( bin_num == "B"):
-		# BIN B
-		poses[-1].position.x = 0.337514
-		poses[-1].position.y += 0.310857
-		poses[-1].position.z = 1.63967
-		poses[-1].orientation.x = -0.293131
-		poses[-1].orientation.y = -0.512971
-		poses[-1].orientation.z = 0.403546
-		poses[-1].orientation.w = 0.698631
-	# BIN A
-	# poses[-1].position.y += 0.270857
-	# BIN F
-	# poses[-1].position.z = 1.39467
-	poses.append(deepcopy(poses[-1]))
+	# if( bin_num == "C"):
+	# 	# BIN C
+	# 	poses[-1].position.x = 0.337514
+	# 	poses[-1].position.y = -0.196057
+	# 	poses[-1].position.z = 1.63967
+	# 	poses[-1].orientation.x = -0.293131
+	# 	poses[-1].orientation.y = -0.512971
+	# 	poses[-1].orientation.z = 0.403546
+	# 	poses[-1].orientation.w = 0.698631
+	# 	# poses[-1].position.x = 0.337581
+	# 	# poses[-1].position.y += -0.011221
+	# 	# poses[-1].position.z += 0.05463
+	# 	# poses[-1].orientation.x = -0.293106
+	# 	# poses[-1].orientation.y = -0.512959
+	# 	# poses[-1].orientation.z = 0.403541
+	# 	# poses[-1].orientation.w = 0.698654
 
+	# elif( bin_num == "B"):
+	# 	# BIN B
+	# 	poses[-1].position.x = 0.337514
+	# 	poses[-1].position.y += 0.280857
+	# 	poses[-1].position.z = 1.63967
+	# 	poses[-1].orientation.x = -0.293131
+	# 	poses[-1].orientation.y = -0.512971
+	# 	poses[-1].orientation.z = 0.403546
+	# 	poses[-1].orientation.w = 0.698631
+	# # BIN A
+	# # poses[-1].position.y += 0.270857
+	# # BIN F
+	# # poses[-1].position.z = 1.39467
+	# poses.append(deepcopy(poses[-1]))
 
+	# start_pose = [arm_right_group.get_current_pose().pose]
 
-	start_pose = [arm_right_group.get_current_pose().pose]
+	# if (bin_num == "C"):
+	# 	# BIN C
+	# 	start_pose[-1].position.x = 0.337514
+	# 	start_pose[-1].position.y = -0.196057
+	# 	start_pose[-1].position.z = 1.63967
+	# 	start_pose[-1].orientation.x = -0.293131
+	# 	start_pose[-1].orientation.y = -0.512971
+	# 	start_pose[-1].orientation.z = 0.403546
+	# 	start_pose[-1].orientation.w = 0.698631
+	# elif (bin_num == "B"):
+	# 	# BIN B
+	# 	start_pose[-1].position.x = 0.337514
+	# 	start_pose[-1].position.y += 0.240857
+	# 	start_pose[-1].position.z = 1.63967
+	# 	start_pose[-1].orientation.x = -0.293131
+	# 	start_pose[-1].orientation.y = -0.512971
+	# 	start_pose[-1].orientation.z = 0.403546
+	# 	start_pose[-1].orientation.w = 0.698631
 
-	if (bin_num == "C"):
-		# BIN C
-		start_pose[-1].position.x = 0.337514
-		start_pose[-1].position.y = -0.196057
-		start_pose[-1].position.z = 1.63967
-		start_pose[-1].orientation.x = -0.293131
-		start_pose[-1].orientation.y = -0.512971
-		start_pose[-1].orientation.z = 0.403546
-		start_pose[-1].orientation.w = 0.698631
-	elif (bin_num == "B"):
-		# BIN B
-		start_pose[-1].position.x = 0.337514
-		start_pose[-1].position.y += 0.310857
-		start_pose[-1].position.z = 1.63967
-		start_pose[-1].orientation.x = -0.293131
-		start_pose[-1].orientation.y = -0.512971
-		start_pose[-1].orientation.z = 0.403546
-		start_pose[-1].orientation.w = 0.698631
+	# elif (bin_num == "A"):
+	# 	# BIN B
+	# 	start_pose[-1].position.x = 0.337514
+	# 	start_pose[-1].position.y -= 0.10
+	# 	start_pose[-1].position.z = 1.63967
+	# 	start_pose[-1].orientation.x = -0.293131
+	# 	start_pose[-1].orientation.y = -0.512971
+	# 	start_pose[-1].orientation.z = 0.403546
+	# 	start_pose[-1].orientation.w = 0.698631
 
-	# BIN A
-	# start_pose[-1].position.y += 0.541714
-
+	# elif (bin_num == "D"):
+	# 	# BIN B
+	# 	start_pose[-1].position.x = 0.337514
+	# 	start_pose[-1].position.y -= 0.10
+	# 	# start_pose[-1].position.z = 1.63967
+	# 	start_pose[-1].orientation.x = -0.293131
+	# 	start_pose[-1].orientation.y = -0.512971
+	# 	start_pose[-1].orientation.z = 0.403546
+	# 	start_pose[-1].orientation.w = 0.698631
 	
 
-	# BIN F
-	# start_pose[-1].position.z = 1.39467
+	# # BIN F
+	# # start_pose[-1].position.z = 1.39467
 
-	if (bin_num == "B"):
-		poses[-1].position.x = 0.37066
-		poses[-1].position.y += 0.14335
-		poses[-1].position.z -= 0.0276
-		poses[-1].orientation.x = 0.19924 
-		poses[-1].orientation.y = -0.69387
-		poses[-1].orientation.z = -0.14743
-		poses[-1].orientation.w = 0.6761
+	# if (bin_num == "B"):
+	# 	poses[-1].position.x = 0.37066
+	# 	poses[-1].position.y += 0.14335
+	# 	poses[-1].position.z -= 0.0276
+	# 	poses[-1].orientation.x = 0.19924 
+	# 	poses[-1].orientation.y = -0.69387
+	# 	poses[-1].orientation.z = -0.14743
+	# 	poses[-1].orientation.w = 0.6761
+	# 	poses.append(deepcopy(poses[-1]))
+
+	# 	poses[-1].position.x += 0.12
+	# 	poses[-1].position.y += 0.03
+	# 	poses.append( deepcopy( poses[-1] ) )
+        
+	# 	poses[-1].position.x += 0.25
+	# 	poses[-1].position.y += 0.01
+	# 	poses.append( deepcopy( poses[-1] ) )
+
+	# 	poses[-1].position.y -= 0.12
+	# 	poses.append( deepcopy( poses[-1] ) )
+
+	# 	poses[-1].position.x -= 0.4
+	# 	poses.append(deepcopy(poses[-1]))		
+
+	# elif (bin_num == "C"):
+	# 	poses[-1].position.x = 0.382929
+	# 	poses[-1].position.y -= .12865034
+	# 	poses[-1].position.z += 0.032
+	# 	poses[-1].orientation.x = 0.686353
+	# 	poses[-1].orientation.y = 0.166894
+	# 	poses[-1].orientation.z = -0.680383
+	# 	poses[-1].orientation.w = -0.195307
+	# 	poses[-1].position.y += rightOffset
+	# 	poses.append(deepcopy(poses[-1]))
+
+
+	# 	poses[-1].position.x += 0.12
+	# 	poses[-1].position.y -= 0.05
+	# 	poses.append( deepcopy( poses[-1] ) )
+        
+	# 	poses[-1].position.x += 0.25
+	# 	poses[-1].position.y -= 0.03
+	# 	poses.append( deepcopy( poses[-1] ) )
+
+	# 	poses[-1].position.y += 0.08
+	# 	poses.append( deepcopy( poses[-1] ) )
+
+	# 	poses[-1].position.x -= 0.5
+	# 	poses.append(deepcopy(poses[-1]))
+
+	# elif (bin_num == "A" or bin_num == "D"):
+
+	# 	poses[-1].position.x += 0.12
+	# 	poses[-1].position.y += 0.03
+	# 	poses.append( deepcopy( poses[-1] ) )
+        
+	# 	poses[-1].position.x += 0.23
+	# 	poses[-1].position.y += 0.03
+	# 	poses.append( deepcopy( poses[-1] ) )
+
+	# 	poses[-1].position.y -= 0.12
+	# 	poses.append( deepcopy( poses[-1] ) )
+
+	# 	poses[-1].position.x -= 0.5
+	# 	poses.append(deepcopy(poses[-1]))	
+
+	# # poses[-1].position.x = 0.337514
+	# # poses[-1].position.y = -0.196057
+	# # poses[-1].position.z = 1.63967
+	# # poses[-1].orientation.x = -0.293131
+	# # poses[-1].orientation.y = -0.512971
+	# # poses[-1].orientation.z = 0.403546
+	# # poses[-1].orientation.w = 0.698631
+	# poses.append(deepcopy(start_pose[-1]))
+
+	# # Forward
+	# poses[-1].position.x += 0.125
+	# poses[-1].position.z += 0.02
+	# poses.append(deepcopy(poses[-1]))
+
+	# # Down
+	# poses[-1].position.z -= 0.0555
+	# poses.append(deepcopy(poses[-1]))
+
+	# # Scoop In
+	# poses[-1].position.x += 0.174
+	# poses[-1].position.z -= 0.0710
+	# poses.append(deepcopy(poses[-1]))
+
+	# #Push In
+	# poses[-1].position.x += 0.1523
+	# poses.append(deepcopy(poses[-1]))
+
+	# #Tilt Up
+	# poses[-1].position.z -= 0.1018
+	# poses.append(deepcopy(poses[-1]))
+
+	# #Lift Tray Up
+	# poses[-1].position.x +=  0.0059
+	# poses[-1].position.y +=  0.0
+	# poses[-1].position.z -=  0.0370
+	# poses[-1].orientation.x = -0.36665
+	# poses[-1].orientation.y = -0.64811
+	# poses[-1].orientation.z = 0.33362
+	# poses[-1].orientation.w = 0.57811
+	# # poses[-1].orientation.x = 0.548548
+	# # poses[-1].orientation.y = -0.546171
+	# # poses[-1].orientation.z = -0.446286
+	# # poses[-1].orientation.w = 0.449022
+	# poses.append(deepcopy(poses[-1]))
+
+	# #Up
+	# poses[-1].position.z += 0.1
+	# poses.append(deepcopy(poses[-1]))
+
+	# #Up and Out
+	# poses[-1].position.x += -0.4586
+	# poses[-1].position.z += 0.03
+	# poses.append(deepcopy(poses[-1]))
+
+	# poses[-1].position.z += 0.03
+	# poses.append(deepcopy(poses[-1]))
+
+	# if(bin_num == "B" or bin_num == "C"):
+	# 	# To right side of shelf
+	# 	poses[-1].position.y = -0.602322
+	# 	poses[-1].position.z -= 0.05
+	# 	poses[-1].orientation.x = -0.36667
+	# 	poses[-1].orientation.y = -0.648119
+	# 	poses[-1].orientation.z = 0.333549	
+	# 	poses[-1].orientation.w = 0.578135
+	# 	poses.append(deepcopy(poses[-1]))
+
+	# 	#To order bin
+	# 	poses[-1].position.x = 0.472985 #0.482178
+	# 	poses[-1].position.y = -0.351667 #-0.335627
+	# 	poses[-1].position.z = 0.753171 #0.706449
+	# 	poses[-1].orientation.x = -0.164656 #-0.198328
+	# 	poses[-1].orientation.y = 0.766477 #0.759802
+	# 	poses[-1].orientation.z = -0.591483 #-0.598499
+	# 	poses[-1].orientation.w = -0.188543 #-0.158639
+	# 	poses.append(deepcopy(poses[-1]))
+
+	# 	#Tilt little by little
+
+	# 	poses[-1].position.x = 0.472985 #0.482178
+	# 	poses[-1].position.y = -0.351667 #-0.335627
+	# 	poses[-1].position.z = 0.753171 #0.706449
+	# 	poses[-1].orientation.x = 0.143945
+	# 	poses[-1].orientation.y = -0.605741
+	# 	poses[-1].orientation.z = 0.757694
+	# 	poses[-1].orientation.w = 0.195594
+	# 	poses.append(deepcopy(poses[-1]))
+
+	# 	poses[-1].position.x = 0.472985 #0.482178
+	# 	poses[-1].position.y = -0.351667 #-0.335627
+	# 	poses[-1].position.z = 0.753171 #0.706449
+	# 	poses[-1].orientation.x = 0.113945
+	# 	poses[-1].orientation.y = -0.525741
+	# 	poses[-1].orientation.z = 0.827694
+	# 	poses[-1].orientation.w = 0.215594
+	# 	poses.append(deepcopy(poses[-1]))
+
+	# 	poses[-1].position.x = 0.472985 #0.482178
+	# 	poses[-1].position.y = -0.351667 #-0.335627
+	# 	poses[-1].position.z = 0.753171 #0.706449
+	# 	poses[-1].orientation.x = 0.112873
+	# 	poses[-1].orientation.y = -0.520793
+	# 	poses[-1].orientation.z = 0.819904
+	# 	poses[-1].orientation.w = 0.209268
+	# 	poses.append(deepcopy(poses[-1]))
+
+
+	if(bin_num == "A"):
+
+		poses[-1].position.x += 0.05
+		poses[-1].position.y += 0.10
+		# poses[-1].position.z -= 0.20
+		# poses[-1].position.y = -0.602322
+		# poses[-1].position.z -= 0.05
+		# poses[-1].orientation.x = -0.36667
+		# poses[-1].orientation.y = -0.648119
+		# poses[-1].orientation.z = 0.333549	
+		# poses[-1].orientation.w = 0.578135
 		poses.append(deepcopy(poses[-1]))
 
-		poses[-1].position.x += 0.12
-		poses[-1].position.y += 0.03
-		poses.append( deepcopy( poses[-1] ) )
-        
-		poses[-1].position.x += 0.25
-		poses[-1].position.y += 0.01
-		poses.append( deepcopy( poses[-1] ) )
-
-		poses[-1].position.y -= 0.10
-		poses.append( deepcopy( poses[-1] ) )
-
-		poses[-1].position.x -= 0.4
-		poses.append(deepcopy(poses[-1]))		
-
-	elif (bin_num == "C"):
-		poses[-1].position.x = 0.37066
-		poses[-1].position.y += 0.04
-		poses[-1].position.z -= 0.0276
-		poses[-1].orientation.x = 0.19924 
-		poses[-1].orientation.y = -0.69387
-		poses[-1].orientation.z = -0.14743
-		poses[-1].orientation.w = 0.6761
+		poses[-1].position.z = 0.633809
 		poses.append(deepcopy(poses[-1]))
 
-		poses[-1].position.x += 0.12
-		poses[-1].position.y -= 0.03
-		poses.append( deepcopy( poses[-1] ) )
-        
-		poses[-1].position.x += 0.25
-		poses[-1].position.y -= 0.01
-		poses.append( deepcopy( poses[-1] ) )
+		#To order bin
+		poses[-1].position.x = 0.282984 #0.482178
+		poses[-1].position.y = 0.549895 #-0.335627
+		poses[-1].position.z = 0.633809 #0.706449
+		poses[-1].orientation.x = -0.531878 #-0.198328
+		poses[-1].orientation.y = -0.519752 #0.759802
+		poses[-1].orientation.z = 0.153483 #-0.598499
+		poses[-1].orientation.w = 0.650697 #-0.158639
+		poses.append(deepcopy(poses[-1]))
 
-		poses[-1].position.y += 0.08
-		poses.append( deepcopy( poses[-1] ) )
-
-		poses[-1].position.x -= 0.4
-		poses.append(deepcopy(poses[-1]))	
-
-
-
-	# poses[-1].position.x = 0.337514
-	# poses[-1].position.y = -0.196057
-	# poses[-1].position.z = 1.63967
-	# poses[-1].orientation.x = -0.293131
-	# poses[-1].orientation.y = -0.512971
-	# poses[-1].orientation.z = 0.403546
-	# poses[-1].orientation.w = 0.698631
-	poses.append(deepcopy(start_pose[-1]))
-
-	# Forward
-	poses[-1].position.x += 0.125
-	poses.append(deepcopy(poses[-1]))
-
-	# Down
-	poses[-1].position.z += -0.0355
-	poses.append(deepcopy(poses[-1]))
-
-	# Scoop In
-	poses[-1].position.x += 0.174
-	poses[-1].position.z += -0.0710
-	poses.append(deepcopy(poses[-1]))
-
-	#Push In
-	poses[-1].position.x += 0.1523
-	poses.append(deepcopy(poses[-1]))
-
-	#Tilt Up
-	poses[-1].position.z += -0.1018
-	poses.append(deepcopy(poses[-1]))
-
-	#Lift Tray Up
-	poses[-1].position.x +=  0.0059
-	poses[-1].position.y +=  0.0
-	poses[-1].position.z += -0.0370
-	poses[-1].orientation.x = -0.36665
-	poses[-1].orientation.y = -0.64811
-	poses[-1].orientation.z = 0.33362
-	poses[-1].orientation.w = 0.57811
-	# poses[-1].orientation.x = 0.548548
-	# poses[-1].orientation.y = -0.546171
-	# poses[-1].orientation.z = -0.446286
-	# poses[-1].orientation.w = 0.449022
-	poses.append(deepcopy(poses[-1]))
-
-	#Up
-	poses[-1].position.z += 0.1
-	poses.append(deepcopy(poses[-1]))
-
-	#Up and Out
-	poses[-1].position.x += -0.4586
-	poses[-1].position.z += 0.03
-	poses.append(deepcopy(poses[-1]))
-
-	poses[-1].position.z += 0.03
-	poses.append(deepcopy(poses[-1]))
-
-
-	# To right side of shelf
-	poses[-1].position.y = -0.602322
-	poses[-1].position.z -= 0.05
-	poses[-1].orientation.x = -0.36667
-	poses[-1].orientation.y = -0.648119
-	poses[-1].orientation.z = 0.333549	
-	poses[-1].orientation.w = 0.578135
-	poses.append(deepcopy(poses[-1]))
-
-	#To order bin
-	poses[-1].position.x = 0.472985 #0.482178
-	poses[-1].position.y = -0.351667 #-0.335627
-	poses[-1].position.z = 0.753171 #0.706449
-	poses[-1].orientation.x = -0.164656 #-0.198328
-	poses[-1].orientation.y = 0.766477 #0.759802
-	poses[-1].orientation.z = -0.591483 #-0.598499
-	poses[-1].orientation.w = -0.188543 #-0.158639
-	poses.append(deepcopy(poses[-1]))
-
-	#Tilt little by little
-
-	poses[-1].position.x = 0.472985 #0.482178
-	poses[-1].position.y = -0.351667 #-0.335627
-	poses[-1].position.z = 0.753171 #0.706449
-	poses[-1].orientation.x = 0.143945
-	poses[-1].orientation.y = -0.605741
-	poses[-1].orientation.z = 0.757694
-	poses[-1].orientation.w = 0.195594
-	poses.append(deepcopy(poses[-1]))
-
-	poses[-1].position.x = 0.472985 #0.482178
-	poses[-1].position.y = -0.351667 #-0.335627
-	poses[-1].position.z = 0.753171 #0.706449
-	poses[-1].orientation.x = 0.113945
-	poses[-1].orientation.y = -0.525741
-	poses[-1].orientation.z = 0.827694
-	poses[-1].orientation.w = 0.215594
-	poses.append(deepcopy(poses[-1]))
-
-	poses[-1].position.x = 0.472985 #0.482178
-	poses[-1].position.y = -0.351667 #-0.335627
-	poses[-1].position.z = 0.753171 #0.706449
-	poses[-1].orientation.x = 0.112873
-	poses[-1].orientation.y = -0.520793
-	poses[-1].orientation.z = 0.819904
-	poses[-1].orientation.w = 0.209268
-	poses.append(deepcopy(poses[-1]))
 
 	print "Planning Cartesian Path Dump....."
 
@@ -542,6 +613,21 @@ if __name__ == '__main__':
 		
 
 		print ">>>>>>>>>> Loading Shelf model <<<<<<<<<<"
+
+		# group_variable_values = arm_right_group.get_current_joint_values()
+		# group_variable_values[0] = 2.608074188232422
+		# group_variable_values[1] = -0.29658669233322144
+		# group_variable_values[2] = 0.8934586644172668
+		# group_variable_values[3] =  1.7289633750915527
+		# group_variable_values[4] =  1.573803424835205
+		# group_variable_values[5] = 1.2867212295532227
+		# group_variable_values[6] = 1.4699939489364624
+		# group_variable_values[7] = -2.8265552520751953
+		# arm_right_group.set_joint_value_target(group_variable_values)
+
+		# plan1 = arm_right_group.plan()
+		# arm_right_group.execute(plan1)
+
 		bin_pose = PoseStamped()
 		bin_pose.pose.position.x = X_pos;
 		bin_pose.pose.position.y = Y_pos;
