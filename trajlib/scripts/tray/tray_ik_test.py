@@ -179,7 +179,6 @@ def pos_test(group_handle, IK_handle):
 		print ">>>> Generating IK solutions... >>>>"
 		config_set = Generate_configuration_set(group_handle, Goal_point_set, IK_handle);
 		print "Total ",len(config_set),"Ik solutions were found";
-
 		for count in range(0,len(config_set)):
 			
 			#group_handle.set_planner_id("RRTstarkConfigDefault");
@@ -215,7 +214,43 @@ def pos_test(group_handle, IK_handle):
 	else:
 	  print "No target Assigned, Exit!";
 	  return False;
+	  
+def rotation_path_generate(group_handle, horizontal_jnt_config):
+	
+	print ">>>> Generating IK solutions... >>>>"
+	seed_state_set = seed_state_generator();
+	print "Total ",len(seed_state_set),"seed state assigned";
+	for count in range(0,len(seed_state_set)):		
+		#group_handle.set_planner_id("RRTstarkConfigDefault");
+		group_handle.set_planner_id("RRTConnectkConfigDefault");
+		
+		config = seed_state_set[count];
+		print ">>>> Planning Trajectory for bin",config.bin_num,"...";
+		group_handle.set_start_state_to_current_state();
+		group_handle.set_joint_value_target(horizontal_jnt_config);
+		Pick_plan = group_handle.plan();
+		
+		planning_attemps = 1;
+		while(len(Pick_plan.joint_trajectory.points) == 0 and planning_attemps <= 100):
+			print "Planning Attempts:",planning_attemps;
+			Pick_plan = group_handle.plan();
+			planning_attemps += 1;
 
+		# Plan is valid, Save trajectory to file
+		if len(Pick_plan.joint_trajectory.points):
+			folder_name = os.path.join(os.path.dirname(__file__), "../../trajectories/bin") + config.bin_num;
+			file_name = folder_name + "/"+ "Rotate";	
+			Save_traj(Pick_plan, file_name);
+			print "Executing trajectory...";
+			group_handle.execute(Pick_plan);
+			rospy.sleep(5);
+			# Go back to init_pos
+			go_home(group_handle);
+			
+			rospy.sleep(5);
+		else:
+			print "Planning failed!";
+			
 if __name__=='__main__':
   try:
 	
@@ -256,7 +291,10 @@ if __name__=='__main__':
 	ik = rospy.ServiceProxy("compute_ik", GetPositionIK);
 
 	print ">>>> Start Testing >>>>"
-	pos_test(arm_right_group, ik)
+	pos_test(arm_right_group, ik);
+	
+	#rotate_config = [2.8286594932856604,1.4258209109299205, -0.1868867195525305, -2.949978169671912, -2.281652360113256, 1.7588712832519384, -1.8896306445671973, -1.8664820311376307];
+	#rotation_path_generate(arm_right_group, rotate_config);
 	
 	print "**** Test End ****"
 	moveit_commander.roscpp_shutdown()

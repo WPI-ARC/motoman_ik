@@ -68,6 +68,9 @@ def runTrajectory(req):
     elif req.task == "Home":
         file_name = file_root+"/bin" + req.bin_num+"/Home";
         traj_execute_group = moveit_commander.MoveGroupCommander("arm_right_torso");
+    elif req.task == "Rotate":
+        file_name = file_root+"/bin" + req.bin_num+"/Rotate";
+        traj_execute_group = moveit_commander.MoveGroupCommander("arm_right_torso");
         
     else :
         return taskResponse(False);

@@ -48,6 +48,8 @@ def runTrajectory(req):
         file_name = file_root+"/Lift";
     elif req.task == "Home":
         file_name = file_root+"/Home";
+    elif req.task == "Rotate":
+        file_name = file_root+"/Rotate";
 		
     else :
         return taskResponse(False);
