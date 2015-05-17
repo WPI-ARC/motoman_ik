@@ -347,9 +347,11 @@ if __name__=='__main__':
 	start_state = motoman_sda10.get_current_state();
 	
 	goal_state = [0.0, -0.7846225685744268, -0.44391901469000256, 2.0332152364478326, -0.9467777692180627, 1.094702439784921, -1.454522631785723, 2.482112603511986]
+	
 	#constraint_planner(start_state, goal_state, arm_right_group, "RRTConnectkConfigDefault", 15, 10);
 	# w 0.70683; x 0.00024277; y 0.00024296; z 0.70739
 	# des_w = 0.68323;	des_x = -0.68245;	des_y = -0.18413;	des_z = -0.18316;
+	
 	orient_constraint = setOrientationConstraints(des_w, des_x, des_y, des_z, arm_right_group, weight = 1.0);
 	test_constraints = Constraints();
 	test_constraints.orientation_constraints.append(orient_constraint);

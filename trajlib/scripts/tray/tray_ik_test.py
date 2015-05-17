@@ -172,8 +172,7 @@ def pos_test(group_handle, IK_handle):
 	Goal_point_set = generate_frontface_positions(Bin_base_x = X_pos, Bin_base_y = Y_pos, Bin_base_z = Z_pos);
 	#Draw_GoalPnt(Goal_point_set);
   # We have valid targets assigned
-	if len(Goal_point_set):  
-
+	if len(Goal_point_set):
 		print "Total target number:",len(Goal_point_set);
 		success_number = 0;
 
@@ -240,11 +239,11 @@ if __name__=='__main__':
 	arm_left_group = moveit_commander.MoveGroupCommander("arm_left_torso");	
 	arm_left_group.set_planner_id("RRTConnectkConfigDefault");
 	arm_left_group.allow_replanning(True);
-	arm_left_group.set_goal_tolerance(0.001);
+	arm_left_group.set_goal_tolerance(0.01);
 
 	arm_right_group = moveit_commander.MoveGroupCommander("arm_right_torso"); 
 	arm_left_group.set_planner_id("RRTConnectkConfigDefault");
-	arm_right_group.set_goal_tolerance(0.001);
+	arm_right_group.set_goal_tolerance(0.01);
 	arm_right_group.allow_replanning(True);
 	
 	pos_init(arm_left_group, arm_right_group);
