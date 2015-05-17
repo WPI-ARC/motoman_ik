@@ -181,8 +181,8 @@ def pos_test(group_handle, IK_handle):
 		print "Total ",len(config_set),"Ik solutions were found";
 		for count in range(0,len(config_set)):
 			
-			#group_handle.set_planner_id("RRTstarkConfigDefault");
-			group_handle.set_planner_id("RRTConnectkConfigDefault");
+			group_handle.set_planner_id("RRTstarkConfigDefault");
+			#group_handle.set_planner_id("RRTConnectkConfigDefault");
 			
 			config = config_set[count];
 			print ">>>> Planning Trajectory for bin",config.bin_num,"...";
