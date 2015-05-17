@@ -346,7 +346,17 @@ if __name__=='__main__':
 	start_state = motoman_sda10.get_current_state();
 	goal_state = [0.0, -0.5263604893956656, 1.6500163692522856, -0.5515519107755565, 1.1627465887780024, 2.26224630000971, -0.7075710170641819, 0.7939218847936328]
 	
-	constraint_planner(start_state, goal_state, arm_right_group, "RRTConnectkConfigDefault", 15, 10);
+	#constraint_planner(start_state, goal_state, arm_right_group, "RRTConnectkConfigDefault", 15, 10);
+	des_w = -0.070099;
+	des_x = 0.41382;
+	des_y = -0.57302;
+	des_z = 0.70391;
+	orient_constraint = setOrientationConstraints(des_w, des_x, des_y, des_z, arm_right_group, weight = 1.0);
+	test_constraints = Constraints();
+	test_constraints.orientation_constraints.append(orient_constraint);
+	arm_right_group.set_path_constraints(test_constraints);
+	arm_right_group.set_random_target();
+	arm_right_group.plan();
 	
 	print "**** Test End ****"
 	moveit_commander.roscpp_shutdown()

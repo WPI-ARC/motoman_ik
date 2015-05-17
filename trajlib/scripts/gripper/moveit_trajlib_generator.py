@@ -32,7 +32,7 @@ from gripper_goal_pos_generate import left_arm_torso_init_joint_value, right_arm
 # Function
 from gripper_goal_pos_generate import generate_goal_points, generate_Pick_points, generate_left_arm_watch_config, generate_Scan_points, generate_left_arm_torso_seed_state, generate_key_joint_state;
 
-planning_time = 60;
+planning_time = 120;
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../scripts"))
 from bin_loader import Load_Bin_model, X_pos, Y_pos, Z_pos;
@@ -55,7 +55,18 @@ def Add_collision_ball():
 	pose.pose.orientation.y = 0
 	pose.pose.orientation.z = 0
 	pose.pose.orientation.w = 1
-	attach_sphere("arm_left_link_7_t", "Object", pose, 0.17, ["hand_left_finger_1_link_2", "hand_left_finger_1_link_3", "hand_left_finger_1_link_3_tip", "hand_left_finger_2_link_2", "hand_left_finger_2_link_3", "hand_left_finger_2_link_3_tip", "hand_left_finger_middle_link_2", "hand_left_finger_middle_link_3", "hand_left_finger_middle_link_3_tip"]);
+	attach_sphere("arm_left_link_7_t", "Object", pose, 0.17, ["hand_left_finger_1_link_1",
+															  "hand_left_finger_1_link_2", 
+															  "hand_left_finger_1_link_3", 
+															  "hand_left_finger_1_link_3_tip",
+															  "hand_left_finger_2_link_1", 
+															  "hand_left_finger_2_link_2", 
+															  "hand_left_finger_2_link_3", 
+															  "hand_left_finger_2_link_3_tip", 
+															  "hand_left_finger_middle_link_1"
+															  "hand_left_finger_middle_link_2", 
+															  "hand_left_finger_middle_link_3", 
+															  "hand_left_finger_middle_link_3_tip",]);
 
 def Draw_GoalPnt(goal_pnts, size = 0.04, color = [0,1,0]):
 	
@@ -148,7 +159,7 @@ def calculateIK_solution(pnt, ik_handle, seed_config, group_handle):
 	Calculationg_attempt = 0;
 	while(result.error_code.val != 1 and Calculationg_attempt < 10):
 		result = find_IK_solution(ik_handle, target_pnt, seed_state, group_handle.get_name());
-		Calculationg_attempt += 1;		
+		Calculationg_attempt += 1;
 	
 	if result.error_code.val != 1:
 		print "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
@@ -157,7 +168,7 @@ def calculateIK_solution(pnt, ik_handle, seed_config, group_handle):
 		return IK_solution;	
 	
 	IK_solution.jnt_val = Copy_joint_value(group_handle.get_name(),result.solution.joint_state.position);
-	IK_solution.bin_num = seed_config.bin_num;
+	IK_solution.bin_num = pnt.bin_num;
 	IK_solution.pos_property = pnt.pnt_property;
 	
 	return IK_solution;
@@ -166,7 +177,7 @@ def calculateIK_solution(pnt, ik_handle, seed_config, group_handle):
 def Update_seedstate(target_pnt_set, seed_config_set,ik_handle,group_handle):
 	arm_config = [];
 	count = 1;
-	for num in range(0,len(seed_config_set)):
+	for num in range(0,len(target_pnt_set)):
 		seed_config = seed_config_set[num];		
 		pnt = target_pnt_set[num];
 		print "Solving IK for pnt:", pnt.bin_num,pnt.pnt_property;
@@ -332,7 +343,7 @@ def Generate_traj_for_home2scan(home_pos, scan_config_set, group_handle):
 			group_handle.set_joint_value_target(home_jnt_value_msg);
 			go_home_plan = group_handle.plan();
 			planning_attemps = 1;
-			while(len(go_home_plan.joint_trajectory.points) == 0 and planning_attemps <= 20):
+			while(len(go_home_plan.joint_trajectory.points) == 0):
 				print "Try to get back home from bin,",scan_goal_config.bin_num, scan_goal_config.pos_property;
 				group_handle.set_random_target();
 				group_handle.go();
@@ -422,9 +433,11 @@ def Generate_traj_for_exit2drop(exit_config_set,drop_pos, group_handle):
 		
 		exit_goal_config = exit_config_set[count];
 		group_handle.set_planner_id("RRTConnectkConfigDefault");
-		#if exit_goal_config.bin_num != "B":
-		#	count += 2;
+		
+		#if exit_goal_config.bin_num != "H" or  exit_goal_config.bin_num != "I" or  exit_goal_config.bin_num != "K" or  exit_goal_config.bin_num != "L"  :
+		#	count += 1;
 		#	continue;		
+		
 		goal_jnt_value_msg = Generate_joint_state_msg(group_handle,exit_goal_config.jnt_val)
 		group_handle.set_joint_value_target(goal_jnt_value_msg);
 		plan = group_handle.plan();
@@ -433,7 +446,7 @@ def Generate_traj_for_exit2drop(exit_config_set,drop_pos, group_handle):
 			print "Try to move to bin", exit_goal_config.bin_num, exit_goal_config.pos_property, "with No.",planning_attemps, "Attempts:";
 			plan = group_handle.plan();
 			planning_attemps += 1;
-		
+
 		if len(plan.joint_trajectory.points):
 			group_handle.execute(plan);
 			rospy.sleep(5);	
@@ -524,33 +537,35 @@ if __name__=='__main__':
 	print ">>>> Updating SCANNING Configurations...";
 	LEFT_ARM_SCAN_CONFIG_SET = Update_seedstate(Scanning_points, left_arm_scan_seed_set, ik, arm_left_group);
 	print "Total", len(LEFT_ARM_SCAN_CONFIG_SET), "SCANNING goal states";
-	
+
 	# Generating (ENTER / EXIT) Configuration
 	print ">>>> Generating ENTER goal Ponits..."
 	Enter_points = generate_Pick_points(Bin_base_x = X_pos, Bin_base_y = Y_pos, Bin_base_z = Z_pos, Extend_distance = 0.5, pnt_property = 'EnterPnt');
 	print "Total", len(Enter_points), "ENTER points";
 	print ">>>> Generating EXIT goal Ponits..."
-	Exit_points = generate_Pick_points(Bin_base_x = X_pos, Bin_base_y = Y_pos, Bin_base_z = Z_pos, Extend_distance = 0.39, pnt_property = 'ExitPnt');
+	Exit_points = generate_Pick_points(Bin_base_x = X_pos, Bin_base_y = Y_pos, Bin_base_z = Z_pos, Extend_distance = 0.38, pnt_property = 'ExitPnt');
 	print "Total", len(Exit_points), "EXIT points";
 	print ">>>> Importing (ENTER / EXIT) seed States..."
 	left_arm_Picking_seedstate_set = generate_left_arm_torso_seed_state();
 	print "Total", len(left_arm_Picking_seedstate_set), "(ENTER / EXIT) seed states";
-	
+
 	print ">>>> Updating ENTER Configurations...";
 	LEFT_ARM_ENTER_CONFIG_SET = Update_seedstate(Enter_points, left_arm_Picking_seedstate_set, ik, arm_left_group);
 	print "Total", len(LEFT_ARM_ENTER_CONFIG_SET), "ENTER goal states";
 	print ">>>> Updating EXIT Configurations...";
 	LEFT_ARM_EXIT_CONFIG_SET = Update_seedstate(Exit_points, left_arm_Picking_seedstate_set, ik, arm_left_group);
 	print "Total", len(LEFT_ARM_EXIT_CONFIG_SET), "EXIT goal states";
-	
+
 	Draw_GoalPnt(Scanning_points, 0.06, [1,0,0]);
-	Generate_traj_for_home2scan(key_joint_state[0],LEFT_ARM_SCAN_CONFIG_SET,arm_left_group);
+	#Generate_traj_for_home2scan(key_joint_state[0],LEFT_ARM_SCAN_CONFIG_SET,arm_left_group);
 
 	#Draw_GoalPnt(Enter_points, 0.04, [1,1,0]);	
 	#Generate_traj_for_scan2enter(LEFT_ARM_SCAN_CONFIG_SET, LEFT_ARM_ENTER_CONFIG_SET,arm_left_group);
 
+	Add_collision_ball();
 	Draw_GoalPnt(Exit_points, 0.04, [0,1,0]);
 	Generate_traj_for_exit2drop(LEFT_ARM_EXIT_CONFIG_SET, key_joint_state[1],arm_left_group);
+	remove_object();
 
 	#ScanPos --> PickPos Library
 	#print ">>>> Generating PICK/DROP goal Ponits..."

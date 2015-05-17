@@ -62,13 +62,16 @@ class testpnt:
         self.qz = 0;
         self.qw = 0;
         
-def generate_Scan_points(Bin_base_x, Bin_base_y, Bin_base_z, Extend_distance = 0.55):
+def generate_Scan_points(Bin_base_x, 
+						 Bin_base_y, 
+						 Bin_base_z, 
+						 Extend_distance = 0.55,
+						 default_orientation_w =  0.0,
+						 default_orientation_x =  0.7,
+						 default_orientation_y =  -0.7,
+						 default_orientation_z =  0.0):
     
-    scan_pnts = [];    
-    default_orientation_w =  0.0;
-    default_orientation_x =  0.7;
-    default_orientation_y =  -0.7;
-    default_orientation_z =  0.0;
+    scan_pnts = [];
     Entry_X_shiftvalue = Extend_distance;
     
 # ----------------------- A ----------------------------
@@ -229,12 +232,17 @@ def generate_Scan_points(Bin_base_x, Bin_base_y, Bin_base_z, Extend_distance = 0
     
     return scan_pnts;
 
-def generate_Pick_points(Bin_base_x, Bin_base_y, Bin_base_z, Extend_distance = 0.42, pnt_property = 'PickPnt'):
+def generate_Pick_points(Bin_base_x, 
+						 Bin_base_y, 
+						 Bin_base_z, 
+						 Extend_distance = 0.42, 
+						 pnt_property = 'PickPnt',
+						 default_orientation_w =  -0.488244,
+						 default_orientation_x =  -0.484592,
+						 default_orientation_y =  0.384602,
+						 default_orientation_z =  0.615524						 
+						):
 	
-	default_orientation_w =  -0.488244
-	default_orientation_x =  -0.484592
-	default_orientation_y =  0.384602
-	default_orientation_z =  0.615524
 	#Entry_X_shiftvalue = Bin_base_x - Bin_depth - Safe_distance - GripperLength - FingerLength*cos(gripper_pitch_ang*ratio);
 	Entry_X_shiftvalue = Extend_distance;
 	print "Current X_shift value is:", Entry_X_shiftvalue;
@@ -298,7 +306,6 @@ def generate_Pick_points(Bin_base_x, Bin_base_y, Bin_base_z, Extend_distance = 0
 	binD_entrance.qz = default_orientation_z;
 	binD_entrance.qw = default_orientation_w;
 	goal_pos.append(binD_entrance);      
-	binD_exit = testpnt();    
 	
 	# ----------------------- E ----------------------------
 	binE_entrance = testpnt();
@@ -312,7 +319,6 @@ def generate_Pick_points(Bin_base_x, Bin_base_y, Bin_base_z, Extend_distance = 0
 	binE_entrance.qz = default_orientation_z;
 	binE_entrance.qw = default_orientation_w;
 	goal_pos.append(binE_entrance);
-	binE_exit = testpnt();    
 
 	# ----------------------- F ----------------------------
 	binF_entrance = testpnt();
@@ -338,33 +344,33 @@ def generate_Pick_points(Bin_base_x, Bin_base_y, Bin_base_z, Extend_distance = 0
 	binG_entrance.qy = default_orientation_y;
 	binG_entrance.qz = default_orientation_z;
 	binG_entrance.qw = default_orientation_w;
-	goal_pos.append(binG_entrance);      
+	#goal_pos.append(binG_entrance);      
 
 	# ----------------------- H ----------------------------
 	binH_entrance = testpnt();
 	binH_entrance.bin_num = "H";
 	binH_entrance.pnt_property = pnt_property;
-	binH_entrance.x = Entry_X_shiftvalue + 0.03;
+	binH_entrance.x = Entry_X_shiftvalue + 0.11;
 	binH_entrance.y = Bin_base_y;
 	binH_entrance.z = Bin_base_z + Level2;
 	binH_entrance.qx = default_orientation_x;
 	binH_entrance.qy = default_orientation_y;
 	binH_entrance.qz = default_orientation_z;
 	binH_entrance.qw = default_orientation_w;
-	goal_pos.append(binH_entrance);
+	#goal_pos.append(binH_entrance);
 
 	# ----------------------- I ----------------------------
 	binI_entrance = testpnt();
 	binI_entrance.bin_num = "I";
 	binI_entrance.pnt_property = pnt_property;
-	binI_entrance.x = Entry_X_shiftvalue  + 0.03 ;
+	binI_entrance.x = Entry_X_shiftvalue;
 	binI_entrance.y = Bin_base_y - Right_horizontal_ShiftValue;
-	binI_entrance.z = Bin_base_z + Level2;
+	binI_entrance.z = Bin_base_z + Level2 + 0.03;
 	binI_entrance.qx = default_orientation_x;
 	binI_entrance.qy = default_orientation_y;
 	binI_entrance.qz = default_orientation_z;
 	binI_entrance.qw = default_orientation_w;
-	goal_pos.append(binI_entrance); 
+	#goal_pos.append(binI_entrance); 
 
 	# ----------------------- J ----------------------------
 	binJ_entrance = testpnt();
@@ -377,33 +383,33 @@ def generate_Pick_points(Bin_base_x, Bin_base_y, Bin_base_z, Extend_distance = 0
 	binJ_entrance.qy = default_orientation_y;
 	binJ_entrance.qz = default_orientation_z;
 	binJ_entrance.qw = default_orientation_w;
-	goal_pos.append(binJ_entrance);      
+	#goal_pos.append(binJ_entrance);      
 
 	# ----------------------- K ----------------------------
 	binK_entrance = testpnt();
 	binK_entrance.bin_num = "K";
 	binK_entrance.pnt_property = pnt_property;
-	binK_entrance.x = Entry_X_shiftvalue  + 0.05;
+	binK_entrance.x = Entry_X_shiftvalue;
 	binK_entrance.y = Bin_base_y;
 	binK_entrance.z = Bin_base_z + Level1;
 	binK_entrance.qx = default_orientation_x;
 	binK_entrance.qy = default_orientation_y;
 	binK_entrance.qz = default_orientation_z;
 	binK_entrance.qw = default_orientation_w;
-	goal_pos.append(binK_entrance);
+	#goal_pos.append(binK_entrance);
 
 	# ----------------------- L ----------------------------
 	binL_entrance = testpnt();
 	binL_entrance.bin_num = "L";
 	binL_entrance.pnt_property = pnt_property;
-	binL_entrance.x = Entry_X_shiftvalue  + 0.03;
+	binL_entrance.x = Entry_X_shiftvalue  + 0.05;
 	binL_entrance.y = Bin_base_y - Right_horizontal_ShiftValue;
 	binL_entrance.z = Bin_base_z + Level1;
 	binL_entrance.qx = default_orientation_x;
 	binL_entrance.qy = default_orientation_y;
 	binL_entrance.qz = default_orientation_z;
 	binL_entrance.qw = default_orientation_w;
-	goal_pos.append(binL_entrance); 
+	#goal_pos.append(binL_entrance); 
 	
 	return goal_pos;
 
