@@ -271,7 +271,7 @@ def Generate_traj_for_key2pnt(key_config_set, goal_config_set, group_handle):
 			
 			# Plan from exit pnt to drop
 			print "----------------------------------------------";
-			Add_collision_ball();
+			#Add_collision_ball();
 			print "Planning from bin",exit_goal_config.bin_num, exit_goal_config.pos_property, "to drop";
 			group_handle.set_joint_value_target(drop_pos.jnt_val);
 			plan = group_handle.plan();
@@ -523,7 +523,6 @@ if __name__=='__main__':
 	rospy.wait_for_service('compute_ik');
 	ik = rospy.ServiceProxy("compute_ik", GetPositionIK);
 
-	
 	print ">>>> Importing Init / Drop configurations..."
 	key_joint_state = generate_key_joint_state(arm_left_group.get_name());
 
@@ -543,7 +542,7 @@ if __name__=='__main__':
 	Enter_points = generate_Pick_points(Bin_base_x = X_pos, Bin_base_y = Y_pos, Bin_base_z = Z_pos, Extend_distance = 0.5, pnt_property = 'EnterPnt');
 	print "Total", len(Enter_points), "ENTER points";
 	print ">>>> Generating EXIT goal Ponits..."
-	Exit_points = generate_Pick_points(Bin_base_x = X_pos, Bin_base_y = Y_pos, Bin_base_z = Z_pos, Extend_distance = 0.38, pnt_property = 'ExitPnt');
+	Exit_points = generate_Pick_points(Bin_base_x = X_pos, Bin_base_y = Y_pos, Bin_base_z = Z_pos, Extend_distance = 0.3, pnt_property = 'ExitPnt');
 	print "Total", len(Exit_points), "EXIT points";
 	print ">>>> Importing (ENTER / EXIT) seed States..."
 	left_arm_Picking_seedstate_set = generate_left_arm_torso_seed_state();

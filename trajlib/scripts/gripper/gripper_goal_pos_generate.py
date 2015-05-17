@@ -285,7 +285,7 @@ def generate_Pick_points(Bin_base_x,
 	binC_entrance = testpnt();
 	binC_entrance.bin_num = "C";
 	binC_entrance.pnt_property = pnt_property;
-	binC_entrance.x = Entry_X_shiftvalue;
+	binC_entrance.x = Entry_X_shiftvalue - 0.02;
 	binC_entrance.y = Bin_base_y - Right_horizontal_ShiftValue;
 	binC_entrance.z = Bin_base_z + Level4;
 	binC_entrance.qx = default_orientation_x;
@@ -326,7 +326,7 @@ def generate_Pick_points(Bin_base_x,
 	binF_entrance.pnt_property = pnt_property;
 	binF_entrance.x = Entry_X_shiftvalue;
 	binF_entrance.y = Bin_base_y - Right_horizontal_ShiftValue;
-	binF_entrance.z = Bin_base_z + Level3;
+	binF_entrance.z = Bin_base_z + Level3 + 0.02;
 	binF_entrance.qx = default_orientation_x;
 	binF_entrance.qy = default_orientation_y;
 	binF_entrance.qz = default_orientation_z;
