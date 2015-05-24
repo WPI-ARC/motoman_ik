@@ -5,9 +5,9 @@ import rospy
 import moveit_commander
 from geometry_msgs.msg import PoseStamped
 
-X_pos = 1.39;
+X_pos = 1.37;
 Y_pos = 0.08;
-Z_pos = -0.05;
+Z_pos = -0.09;
 
 
 def Load_Bin_model(bin_x, bin_y, bin_z, CheckCollision = True):
@@ -48,7 +48,7 @@ def Load_Bin_model(bin_x, bin_y, bin_z, CheckCollision = True):
 				name="shelfcollision_model",
 				pose=box_pose,
 				#size=(0.96, 0.96, 2.5));
-				size=(0.99, 0.99, 2.5));
+				size=(0.965, 0.965, 2.5));
 		
         
 	except rospy.ROSInterruptException:

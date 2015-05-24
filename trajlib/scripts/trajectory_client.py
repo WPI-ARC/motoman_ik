@@ -10,13 +10,12 @@ import moveit_commander
 from moveit_msgs.msg import DisplayTrajectory
 
 def request_a_traj(current_task, bin_num, using_torso):
-	
 	try:
-		
 		traj_server = rospy.ServiceProxy('trajectory_display', GetTrajectory);
 		
 		resp1 = traj_server(current_task, bin_num, using_torso);
-		return taskResponse(True);
+		
+		return GetTrajectoryResponse(resp1.plan, True);
 
 	except rospy.ServiceException, e:
 		print "Service call failed: %s" %e;

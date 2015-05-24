@@ -11,6 +11,7 @@ from std_msgs.msg import Int64
 from StringIO import StringIO
 
 from apc_util.collision import attach_sphere, remove_object
+from apc_util.shelf import bin_pose, add_shelf, remove_shelf, Shelf, get_shelf_pose
 
 import moveit_commander
 import moveit_msgs.msg
@@ -32,7 +33,7 @@ from gripper_goal_pos_generate import left_arm_torso_init_joint_value, right_arm
 # Function
 from gripper_goal_pos_generate import generate_goal_points, generate_Pick_points, generate_left_arm_watch_config, generate_Scan_points, generate_left_arm_torso_seed_state, generate_key_joint_state;
 
-planning_time = 120;
+planning_time = 360;
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../scripts"))
 from bin_loader import Load_Bin_model, X_pos, Y_pos, Z_pos;
@@ -63,11 +64,10 @@ def Add_collision_ball():
 															  "hand_left_finger_2_link_2", 
 															  "hand_left_finger_2_link_3", 
 															  "hand_left_finger_2_link_3_tip", 
-															  "hand_left_finger_middle_link_1"
+															  "hand_left_finger_middle_link_1",
 															  "hand_left_finger_middle_link_2", 
 															  "hand_left_finger_middle_link_3", 
-															  "hand_left_finger_middle_link_3_tip",]);
-
+															  "hand_left_finger_middle_link_3_tip"]);
 def Draw_GoalPnt(goal_pnts, size = 0.04, color = [0,1,0]):
 	
 	goal_positions = MarkerArray();
@@ -78,9 +78,9 @@ def Draw_GoalPnt(goal_pnts, size = 0.04, color = [0,1,0]):
 		marker.header.frame_id = "base_link";
 		marker.type = marker.SPHERE_LIST;
 		marker.action = marker.ADD;
-		marker.scale.x = 0.04;
-		marker.scale.y = 0.04;
-		marker.scale.z = 0.04;
+		marker.scale.x = size;
+		marker.scale.y = size;
+		marker.scale.z = size;
 		marker.pose.orientation.w = 1;
 		
 		marker.color.a = 1.0
@@ -113,9 +113,33 @@ def find_IK_solution(ik, target, seed, group_name):
                                                                         ))
     return response
 
+def go_home(group_handle):
+	print "Try to go back to home...";
+	if group_handle.get_name() == "arm_right_torso":
+		group_handle.set_joint_value_target(right_arm_torso_init_joint_value);
+	else:
+		group_handle.set_joint_value_target(left_arm_torso_init_joint_value);
+	group_handle.set_planner_id("RRTConnectkConfigDefault");
+	plan = group_handle.plan();
+	planning_attemps = 1;
+	while(len(plan.joint_trajectory.points) == 0):
+		
+		#group_handle.set_random_target();
+		group_handle.go();
+		
+		print "Planning Attempts:",planning_attemps;
+		
+		if group_handle.get_name() == "arm_right_torso":
+			group_handle.set_joint_value_target(right_arm_torso_init_joint_value);
+		else:
+			group_handle.set_joint_value_target(left_arm_torso_init_joint_value);
+			
+		plan = group_handle.plan();					
+	group_handle.execute(plan);
+	
 def arm_init(left_arm_group_handle, right_arm_group_handle):
-	left_arm_group_handle.go(left_arm_torso_init_joint_value);
-	right_arm_group_handle.go(right_arm_torso_init_joint_value);
+	go_home(left_arm_group_handle);
+	go_home(right_arm_group_handle);
 
 def Save_traj(file_name,plan):
 	
@@ -144,8 +168,7 @@ def Copy_joint_value(group_name, joint_values):
 def calculateIK_solution(pnt, ik_handle, seed_config, group_handle):
 
 	IK_solution = Jnt_state_goal();
-	
-	seed_state = Generate_joint_state_msg(group_handle,seed_config.jnt_val);	
+		
 	target_pnt = geometry_msgs.msg.Pose();
 	target_pnt.position.x = pnt.x;
 	target_pnt.position.y = pnt.y;
@@ -153,8 +176,11 @@ def calculateIK_solution(pnt, ik_handle, seed_config, group_handle):
 	target_pnt.orientation.x = pnt.qx;
 	target_pnt.orientation.y = pnt.qy;
 	target_pnt.orientation.z = pnt.qz;
-	target_pnt.orientation.w = pnt.qw;	
-	result = find_IK_solution(ik_handle, target_pnt, seed_state, group_handle.get_name());
+	target_pnt.orientation.w = pnt.qw;
+	
+	seed_state = Generate_joint_state_msg(group_handle,seed_config);
+	
+	result = find_IK_solution(ik_handle, target_pnt, seed_state, group_handle.get_name());		
 	
 	Calculationg_attempt = 0;
 	while(result.error_code.val != 1 and Calculationg_attempt < 10):
@@ -171,19 +197,39 @@ def calculateIK_solution(pnt, ik_handle, seed_config, group_handle):
 	IK_solution.bin_num = pnt.bin_num;
 	IK_solution.pos_property = pnt.pnt_property;
 	
+	#print IK_solution.bin_num, IK_solution.jnt_val;
+	
 	return IK_solution;
 
 # Function
+def Check_IK_solution(IK_solution, Seed_config):
+	# Here only check for torso link
+	seed_torso = Seed_config.jnt_val[0];
+	ik_torso = IK_solution.jnt_val[0];
+	#print "Seed:",seed_torso,"IK_solution",ik_torso;
+	diff = abs(seed_torso - ik_torso);
+	if diff > 1:
+		#print "Current torso difference is",diff;
+		return False;
+	else:
+		return True;
+
 def Update_seedstate(target_pnt_set, seed_config_set,ik_handle,group_handle):
 	arm_config = [];
-	count = 1;
-	for num in range(0,len(target_pnt_set)):
-		seed_config = seed_config_set[num];		
-		pnt = target_pnt_set[num];
-		print "Solving IK for pnt:", pnt.bin_num,pnt.pnt_property;
-		Solution = calculateIK_solution(pnt,ik_handle,seed_config,group_handle);
-		arm_config.append(Solution);
-		
+	for count in range(0,len(target_pnt_set)):
+		pnt = target_pnt_set[count];
+		for num in range(0,len(seed_config_set)):
+			seed_config = seed_config_set[num];
+			if seed_config.bin_num == pnt.bin_num:
+				print "Solving IK for pnt:", pnt.bin_num,pnt.pnt_property;
+				Solution = calculateIK_solution(pnt,ik_handle,seed_config.jnt_val,group_handle);
+				solution_valid = Check_IK_solution(Solution,seed_config);
+				while solution_valid is False:
+					pnt.x += 0.0001;
+					Solution = calculateIK_solution(pnt,ik_handle,seed_config.jnt_val,group_handle);
+					solution_valid = Check_IK_solution(Solution,seed_config);
+				print Solution.jnt_val;
+				arm_config.append(Solution);
 	print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>.."
 	print "Configuration update complete!!"
 	return arm_config;
@@ -417,7 +463,7 @@ def Generate_traj_for_scan2enter(scan_config_set, enter_config_set, group_handle
 	
 	print "Total success number: ",success_num,"/",len(enter_config_set);
 
-def Generate_traj_for_exit2drop(exit_config_set,drop_pos, group_handle):
+def Generate_traj_for_exit2drop(exit_config_set, exit_pnts, ik_handle, drop_pos, group_handle):
 
 	print "****************************************************************************";
 	print "****************************************************************************";
@@ -426,24 +472,33 @@ def Generate_traj_for_exit2drop(exit_config_set,drop_pos, group_handle):
 
 	success_num = 0;
 	print "Try to generate ", len(exit_config_set), "trajectories";
-	
+
 	count  = 0;	
 	planning_attemps = 0;
 	while(count < len(exit_config_set)):
-		
+
 		exit_goal_config = exit_config_set[count];
 		group_handle.set_planner_id("RRTConnectkConfigDefault");
 		
 		#if exit_goal_config.bin_num != "H" or  exit_goal_config.bin_num != "I" or  exit_goal_config.bin_num != "K" or  exit_goal_config.bin_num != "L"  :
 		#	count += 1;
-		#	continue;		
+		#	continue;
 		
 		goal_jnt_value_msg = Generate_joint_state_msg(group_handle,exit_goal_config.jnt_val)
 		group_handle.set_joint_value_target(goal_jnt_value_msg);
 		plan = group_handle.plan();
 		planning_attemps = 1;
-		while(len(plan.joint_trajectory.points) == 0 and planning_attemps <= 20):
+		
+		while(len(plan.joint_trajectory.points) == 0 and planning_attemps <= 10):
+			
+			#goal_pnt = exit_pnts[count];
+			#seed_state = group_handle.get_current_joint_values();
+			#New_IK_solution = calculateIK_solution(goal_pnt,ik_handle,seed_state,group_handle);
+			#goal_jnt_value_msg = Generate_joint_state_msg(group_handle,New_IK_solution.jnt_val)
+			#group_handle.set_joint_value_target(goal_jnt_value_msg);
+			
 			print "Try to move to bin", exit_goal_config.bin_num, exit_goal_config.pos_property, "with No.",planning_attemps, "Attempts:";
+			#print goal_jnt_value_msg;
 			plan = group_handle.plan();
 			planning_attemps += 1;
 
@@ -453,12 +508,13 @@ def Generate_traj_for_exit2drop(exit_config_set,drop_pos, group_handle):
 			print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>";
 			print "Now planning from bin",exit_goal_config.bin_num, exit_goal_config.pos_property,"to drop";
 			print "======================================================";
+			
 			group_handle.set_planner_id("RRTstarkConfigDefault");
 			drop_jnt_value_msg = Generate_joint_state_msg(group_handle,drop_pos.jnt_val)
 			group_handle.set_joint_value_target(drop_jnt_value_msg);
 			go_drop_plan = group_handle.plan();
 			planning_attemps = 1;
-			while(len(go_drop_plan.joint_trajectory.points) == 0 and planning_attemps <= 20):
+			while(len(go_drop_plan.joint_trajectory.points) == 0 and planning_attemps <= 10):
 				print "Try to plan to drop pos from bin,",exit_goal_config.bin_num, exit_goal_config.pos_property;
 				go_drop_plan = group_handle.plan();
 				planning_attemps += 1;
@@ -468,11 +524,10 @@ def Generate_traj_for_exit2drop(exit_config_set,drop_pos, group_handle):
 				go_drop_plan = group_handle.plan();
 			else:
 				group_handle.execute(go_drop_plan);
-				
-			folder_name = os.path.join(os.path.dirname(__file__), "../../trajectories/bin") + exit_goal_config.bin_num;
-			file_name = folder_name + "/"+ "drop";
-			Save_traj(file_name,go_drop_plan);
-			success_num += 1;
+				folder_name = os.path.join(os.path.dirname(__file__), "../../trajectories/bin") + exit_goal_config.bin_num;
+				file_name = folder_name + "/"+ "drop";
+				Save_traj(file_name,go_drop_plan);
+				success_num += 1;
 		else:
 			print "Plan moving to bin",exit_goal_config.bin_num, exit_goal_config.pos_property, " Failed!";
 		count += 1;
@@ -491,6 +546,8 @@ if __name__=='__main__':
 	rospy.init_node('Trajectory generator', anonymous=True);
 
 	remove_object();
+	
+	motoman_sda10 = moveit_commander.RobotCommander();
 	
 	arm_left_group = moveit_commander.MoveGroupCommander("arm_left_torso");
 	arm_right_group = moveit_commander.MoveGroupCommander("arm_right_torso");
@@ -517,7 +574,8 @@ if __name__=='__main__':
 	Y_pos = default_Bin_Y;
 	Z_pos = default_Bin_Z;
 	print "Current Shelf Position: ",X_pos, Y_pos, Z_pos;
-	Load_Bin_model(X_pos, Y_pos, Z_pos);
+	#Load_Bin_model(X_pos, Y_pos, Z_pos);
+	add_shelf();
 
 	print ">>>> Waiting for service `compute_ik` >>>>";
 	rospy.wait_for_service('compute_ik');
@@ -541,16 +599,18 @@ if __name__=='__main__':
 	print ">>>> Generating ENTER goal Ponits..."
 	Enter_points = generate_Pick_points(Bin_base_x = X_pos, Bin_base_y = Y_pos, Bin_base_z = Z_pos, Extend_distance = 0.5, pnt_property = 'EnterPnt');
 	print "Total", len(Enter_points), "ENTER points";
-	print ">>>> Generating EXIT goal Ponits..."
-	Exit_points = generate_Pick_points(Bin_base_x = X_pos, Bin_base_y = Y_pos, Bin_base_z = Z_pos, Extend_distance = 0.3, pnt_property = 'ExitPnt');
+	print ">>>> Generating EXIT goal Ponits...";
+	Exit_points = generate_Pick_points(Bin_base_x = X_pos, Bin_base_y = Y_pos, Bin_base_z = Z_pos, Extend_distance = 0.33, pnt_property = 'ExitPnt');
 	print "Total", len(Exit_points), "EXIT points";
 	print ">>>> Importing (ENTER / EXIT) seed States..."
 	left_arm_Picking_seedstate_set = generate_left_arm_torso_seed_state();
 	print "Total", len(left_arm_Picking_seedstate_set), "(ENTER / EXIT) seed states";
 
 	print ">>>> Updating ENTER Configurations...";
-	LEFT_ARM_ENTER_CONFIG_SET = Update_seedstate(Enter_points, left_arm_Picking_seedstate_set, ik, arm_left_group);
-	print "Total", len(LEFT_ARM_ENTER_CONFIG_SET), "ENTER goal states";
+	#LEFT_ARM_ENTER_CONFIG_SET = Update_seedstate(Enter_points, left_arm_Picking_seedstate_set, ik, arm_left_group);
+	#print "Total", len(LEFT_ARM_ENTER_CONFIG_SET), "ENTER goal states";
+	
+	print arm_left_group.get_end_effector_link();
 	print ">>>> Updating EXIT Configurations...";
 	LEFT_ARM_EXIT_CONFIG_SET = Update_seedstate(Exit_points, left_arm_Picking_seedstate_set, ik, arm_left_group);
 	print "Total", len(LEFT_ARM_EXIT_CONFIG_SET), "EXIT goal states";
@@ -562,10 +622,15 @@ if __name__=='__main__':
 	#Generate_traj_for_scan2enter(LEFT_ARM_SCAN_CONFIG_SET, LEFT_ARM_ENTER_CONFIG_SET,arm_left_group);
 
 	#Add_collision_ball();
+	
 	Draw_GoalPnt(Exit_points, 0.04, [0,1,0]);
-	Generate_traj_for_exit2drop(LEFT_ARM_EXIT_CONFIG_SET, key_joint_state[1],arm_left_group);
-	remove_object();
-
+	
+	#Add_collision_ball();
+	
+	Generate_traj_for_exit2drop(LEFT_ARM_EXIT_CONFIG_SET, Exit_points, ik, key_joint_state[1],arm_left_group);
+	
+	#remove_object();
+ 
 	#ScanPos --> PickPos Library
 	#print ">>>> Generating PICK/DROP goal Ponits..."
 	#Goal_points = generate_goal_points(Bin_base_x = X_pos, Bin_base_y = Y_pos, Bin_base_z = Z_pos, Extend_distance = 0.42);
